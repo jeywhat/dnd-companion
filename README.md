@@ -1,5 +1,4 @@
-# 🎲 Compagnon D&D — D&D 5e Live Companion App 
-# (Currently only available in French)
+# 🎲 Compagnon D&D — D&D 5e Live Companion App (Currently only available in French)
 
 <div align="center">
 
