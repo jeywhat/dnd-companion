@@ -326,7 +326,7 @@ Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for more informa
 
 <div align="center">
 
-Made with ❤️ for tabletop adventurers everywhere.
+Made with ❤️ with AI for tabletop adventurers everywhere.
 
 *"May your rolls be high and your DM be merciful."*
 
