@@ -139,22 +139,44 @@ button:active {
 
 /* ─── Language selector ──────────────────────────────────────────────────────── */
 
-.locale-select {
-  appearance: none;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 0.4rem;
-  color: var(--text-primary);
-  cursor: pointer;
-  font-size: 0.78rem;
-  padding: 0.3rem 0.5rem;
-  transition: border-color 0.15s;
+.locale-switcher {
+  display: flex;
+  gap: 0.3rem;
+  align-items: center;
 }
 
-.locale-select:hover,
-.locale-select:focus-visible {
-  border-color: var(--accent);
+.locale-btn {
+  appearance: none;
+  background: none;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: unset;
+  padding: 0;
+  width: 28px;
+  height: 28px;
+  opacity: 0.45;
+  transition: opacity 0.15s, border-color 0.15s;
+}
+
+.locale-btn img {
+  display: block;
+  border-radius: 50%;
+}
+
+.locale-btn:hover,
+.locale-btn:focus-visible {
+  opacity: 0.75;
   outline: none;
+  transform: none;
+}
+
+.locale-btn.active {
+  border-color: var(--primary);
+  opacity: 1;
 }
 
 /* ─── Discord profile chip (header) ──────────────────────────────────────────── */

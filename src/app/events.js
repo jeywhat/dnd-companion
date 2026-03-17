@@ -53,13 +53,6 @@ function handleInput(event) {
 function handleChange(event) {
   const target = event.target;
 
-  if (target.matches("[data-locale-select]")) {
-    setLocale(target.value);
-    appElement.innerHTML = getAppTemplate();
-    render(true);
-    return;
-  }
-
   if (!(target instanceof HTMLInputElement)) {
     return;
   }
@@ -81,11 +74,16 @@ function handleSubmit(event) {
 
 export function bindEvents(appElement) {
   appElement.addEventListener("click", (event) => {
-    const actionButton = event.target.closest("[data-action]");
-
-    if (!actionButton) {
+    const localeBtn = event.target.closest("[data-locale]");
+    if (localeBtn) {
+      setLocale(localeBtn.dataset.locale);
+      appElement.innerHTML = getAppTemplate();
+      render(true);
       return;
     }
+
+    const actionButton = event.target.closest("[data-action]");
+    if (!actionButton) return;
 
     void handleAction(actionButton).catch((error) => {
       setStatus("error", error.message);

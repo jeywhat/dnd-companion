@@ -18,15 +18,14 @@ export function getAppTemplate() {
           <p class="muted" data-character-subtitle>${t("app.defaultClass")} • ${t("character.level.label")} 1</p>
         </div>
         <div class="header-actions">
-          <select
-            class="locale-select"
-            data-locale-select
-            aria-label="${t("lang.ariaLabel")}"
-            title="${t("lang.ariaLabel")}"
-          >
-            <option value="fr" ${locale === "fr" ? "selected" : ""}>🇫🇷</option>
-            <option value="en" ${locale === "en" ? "selected" : ""}>🇬🇧</option>
-          </select>
+          <div class="locale-switcher" role="group" aria-label="${t("lang.ariaLabel")}">
+            <button type="button" class="locale-btn${locale === "fr" ? " active" : ""}" data-locale="fr" aria-label="Français" title="Français">
+              <img src="https://hatscripts.github.io/circle-flags/flags/fr.svg" width="22" height="22" alt="FR" aria-hidden="true">
+            </button>
+            <button type="button" class="locale-btn${locale === "en" ? " active" : ""}" data-locale="en" aria-label="English" title="English">
+              <img src="https://hatscripts.github.io/circle-flags/flags/gb.svg" width="22" height="22" alt="GB" aria-hidden="true">
+            </button>
+          </div>
           <button
             type="button"
             class="d20-lock-btn"
