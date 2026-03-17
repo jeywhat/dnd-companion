@@ -1,9 +1,22 @@
-import { setStatus, commit } from "./store.js";
+import { setStatus, commit, state, appElement } from "./store.js";
 import { handleCombatAction } from "../features/combat/handler.js";
 import { handleRollsAction, handleRollsChange } from "../features/rolls/handler.js";
 import { handleGrimoireAction, handleGrimoireSubmit } from "../features/grimoire/handler.js";
 import { handleCharacterInput, handleCharacterChange, handleCharacterSubmit } from "../features/character/handler.js";
 import { handleSettingsAction, handleSettingsInput } from "../features/settings/handler.js";
+
+function switchTab(tab) {
+  if (tab === state.ui.activeTab) return;
+
+  state.ui.activeTab = tab;
+  commit(false);
+
+  const panel = appElement.querySelector(`[data-panel="${tab}"]`);
+  if (panel) {
+    panel.classList.add("panel-enter");
+    panel.addEventListener("animationend", () => panel.classList.remove("panel-enter"), { once: true });
+  }
+}
 
 const ACTION_HANDLERS = [
   handleCombatAction,
@@ -13,6 +26,11 @@ const ACTION_HANDLERS = [
 ];
 
 async function handleAction(actionButton) {
+  if (actionButton.dataset.action === "switch-tab") {
+    switchTab(actionButton.dataset.tab);
+    return;
+  }
+
   for (const handler of ACTION_HANDLERS) {
     const handled = await handler(actionButton);
     if (handled) return;
