@@ -10,9 +10,17 @@ function onPartyUpdate(sid, member) {
   if (sid === SESSION_ID) return;
 
   if (!member || typeof member !== "object") {
-    delete state.party[sid];
+    // Suppression : chercher l'entrée dont le .sid correspond
+    for (const [key, val] of Object.entries(state.party)) {
+      if (val.sid === sid) { delete state.party[key]; break; }
+    }
   } else {
-    state.party[sid] = { ...member, sid };
+    const nameKey = (member.name || "").trim() || sid;
+    // Nettoyer une éventuelle entrée obsolète pour ce même sid sous un ancien nom
+    for (const [key, val] of Object.entries(state.party)) {
+      if (val.sid === sid && key !== nameKey) delete state.party[key];
+    }
+    state.party[nameKey] = { ...member, sid };
   }
 
   renderParty();
