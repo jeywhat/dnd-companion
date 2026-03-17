@@ -12,8 +12,10 @@
 
 export const SESSION_ID = Math.random().toString(36).slice(2, 10);
 
-let _eventSource = null;
-let _onRoll      = null;
+let _eventSource      = null;
+let _onRoll           = null;
+let _partyEventSource = null;
+let _onPartyUpdate    = null;
 
 function buildBase(firebaseUrl, roomId) {
   const base = firebaseUrl.replace(/\/$/, "");
@@ -75,6 +77,73 @@ export function connectSync({ firebaseUrl, roomId, onRoll }) {
 export function disconnectSync() {
   _eventSource?.close();
   _eventSource = null;
+}
+
+// ─── Party sync ───────────────────────────────────────────────────────────────
+
+function buildPartyBase(firebaseUrl, roomId) {
+  return `${buildBase(firebaseUrl, roomId)}/party`;
+}
+
+export function connectPartySync({ firebaseUrl, roomId, onPartyUpdate }) {
+  disconnectPartySync();
+  if (!firebaseUrl?.startsWith("https://") || !roomId?.trim()) return;
+
+  _onPartyUpdate = onPartyUpdate;
+  const url = `${buildPartyBase(firebaseUrl, roomId)}.json`;
+
+  try {
+    _partyEventSource = new EventSource(url);
+
+    _partyEventSource.addEventListener("put", (e) => {
+      try {
+        const { path, data } = JSON.parse(e.data);
+        if (!path) return;
+        if (path === "/") {
+          if (data && typeof data === "object") {
+            for (const [sid, member] of Object.entries(data)) _onPartyUpdate?.(sid, member);
+          }
+          return;
+        }
+        _onPartyUpdate?.(path.replace(/^\//, ""), data);
+      } catch { /* JSON malformé */ }
+    });
+
+    _partyEventSource.addEventListener("patch", (e) => {
+      try {
+        const { path, data } = JSON.parse(e.data);
+        if (!data || typeof data !== "object") return;
+        if (!path || path === "/") {
+          for (const [sid, member] of Object.entries(data)) _onPartyUpdate?.(sid, member);
+        } else {
+          _onPartyUpdate?.(path.replace(/^\//, ""), data);
+        }
+      } catch { /* JSON malformé */ }
+    });
+
+    _partyEventSource.onerror = () => console.info("[PartySync] Reconnexion…");
+    console.info("[PartySync] Connecté à", url);
+  } catch (err) {
+    console.warn("[PartySync] Connexion SSE impossible :", err);
+  }
+}
+
+export function disconnectPartySync() {
+  _partyEventSource?.close();
+  _partyEventSource = null;
+}
+
+export async function publishParty({ firebaseUrl, roomId, member }) {
+  if (!firebaseUrl?.startsWith("https://") || !roomId?.trim()) return;
+
+  const url = `${buildPartyBase(firebaseUrl, roomId)}/${SESSION_ID}.json`;
+  const body = JSON.stringify({ ...member, sid: SESSION_ID, updatedAt: Date.now() });
+
+  await fetch(url, {
+    method : "PUT",
+    headers: { "Content-Type": "application/json" },
+    body,
+  }).catch((err) => console.warn("[PartySync publish]", err));
 }
 
 export async function publishRoll({ firebaseUrl, roomId, roll }) {

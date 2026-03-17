@@ -1898,6 +1898,204 @@ h3 {
   font-family: inherit;
 }
 
+/* ─── Avatar upload (character sheet) ───────────────────────────────────────── */
+
+.avatar-upload-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.avatar-upload {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  min-height: unset;
+  border-radius: 50%;
+  border: 2px dashed rgba(165, 180, 252, 0.4);
+  background: rgba(139, 92, 246, 0.08);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  overflow: hidden;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.avatar-upload:hover,
+.avatar-upload:focus-visible {
+  border-color: var(--primary);
+  background: rgba(139, 92, 246, 0.18);
+  transform: none;
+  outline: none;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.avatar-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  color: rgba(165, 180, 252, 0.6);
+  pointer-events: none;
+}
+
+.avatar-hint {
+  font-size: 0.58rem;
+  text-align: center;
+}
+
+/* ─── Party panel (fixed left) ───────────────────────────────────────────────── */
+
+.party-panel {
+  position: fixed;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 200;
+  width: 70px;
+  pointer-events: none;
+}
+
+.party-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  pointer-events: auto;
+}
+
+.party-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  background: rgba(10, 8, 22, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(165, 180, 252, 0.12);
+  border-radius: 0.75rem;
+  padding: 0.45rem 0.25rem 0.4rem;
+  width: 70px;
+  cursor: default;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.party-card:hover {
+  border-color: rgba(139, 92, 246, 0.45);
+  transform: translateX(3px);
+}
+
+.party-card--self {
+  border-color: rgba(139, 92, 246, 0.35);
+}
+
+.party-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(165, 180, 252, 0.25);
+  flex-shrink: 0;
+}
+
+.party-avatar--initial {
+  background: rgba(139, 92, 246, 0.2);
+  border: 2px solid var(--pcolor, var(--primary));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+}
+
+.party-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.18rem;
+  width: 100%;
+}
+
+.party-name {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--text);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 58px;
+}
+
+.party-class {
+  font-size: 0.52rem;
+  color: var(--text-muted);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 58px;
+}
+
+.party-hp-track {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.party-hp-bar {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+.party-hp-bar--full     { background: var(--success); }
+.party-hp-bar--injured  { background: var(--warning); }
+.party-hp-bar--critical { background: var(--danger); }
+
+.party-hp-label {
+  font-size: 0.52rem;
+  color: var(--text-muted);
+}
+
+@media (max-width: 480px) {
+  .party-panel {
+    left: 4px;
+    width: 56px;
+  }
+
+  .party-card {
+    width: 56px;
+    padding: 0.35rem 0.2rem;
+  }
+
+  .party-avatar,
+  .party-avatar--initial {
+    width: 30px;
+    height: 30px;
+    font-size: 0.8rem;
+  }
+
+  .party-name,
+  .party-class {
+    max-width: 46px;
+  }
+}
+
 .rpop-die-lbl {
   fill: var(--rpop-color, #7c3aed);
   font-weight: 700;

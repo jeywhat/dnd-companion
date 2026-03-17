@@ -58,6 +58,7 @@ export function createDefaultState() {
     character: {
       name: "",
       className: "",
+      avatar: "",
       level: 1,
       abilities: createDefaultAbilities(),
       hpMax: 10,

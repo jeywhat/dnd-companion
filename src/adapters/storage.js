@@ -67,6 +67,10 @@ export function sanitiseState(rawState) {
   nextState.character.name = typeof rawCharacter.name === "string" ? rawCharacter.name.trim() : "";
   nextState.character.className =
     typeof rawCharacter.className === "string" ? rawCharacter.className.trim() : "";
+  nextState.character.avatar =
+    typeof rawCharacter.avatar === "string" && rawCharacter.avatar.startsWith("data:image/")
+      ? rawCharacter.avatar.slice(0, 200_000)
+      : "";
   nextState.character.level = clamp(toInt(rawCharacter.level, 1), 1, 20);
 
   for (const ability of ABILITIES) {

@@ -226,6 +226,27 @@ export function getAppTemplate() {
             <section class="stack-form" aria-label="${t("character.section.ariaLabel")}">
               <details class="card disclosure" open>
                 <summary>${t("character.identity.title")}</summary>
+
+                <div class="avatar-upload-wrapper">
+                  <button
+                    type="button"
+                    class="avatar-upload"
+                    data-action="upload-avatar"
+                    aria-label="${t("character.avatar.ariaLabel")}"
+                    title="${t("character.avatar.ariaLabel")}"
+                  >
+                    <img class="avatar-img" data-avatar-preview src="" alt="" hidden>
+                    <span class="avatar-placeholder" data-avatar-placeholder>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/>
+                        <circle cx="12" cy="13" r="3"/>
+                      </svg>
+                      <span class="avatar-hint">${t("character.avatar.hint")}</span>
+                    </span>
+                  </button>
+                  <input type="file" accept="image/*" id="avatar-file-input" style="display:none" aria-label="${t("character.avatar.label")}" tabindex="-1">
+                </div>
+
                 <div class="form-grid">
                   <label class="field" for="character-name">
                     <span>${t("character.name.label")}</span>
@@ -533,6 +554,9 @@ export function getAppTemplate() {
         </section>
       </main>
       <p class="sr-only" data-live-region aria-live="assertive"></p>
+      <aside id="party-panel" class="party-panel" aria-label="${t("party.ariaLabel")}">
+        <ul class="party-list" data-party-list aria-label="${t("party.title")}"></ul>
+      </aside>
     </div>
   `;
 }

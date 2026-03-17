@@ -296,4 +296,15 @@ export const en = {
   // ── Integrity check ──────────────────────────────────────────────────────────
   "integrity.d20Label": "d20 Integrity",
   "integrity.d20Expected": "Value 1 to 20",
+
+  // ── Character avatar ──────────────────────────────────────────────────────────
+  "character.avatar.label": "Avatar",
+  "character.avatar.ariaLabel": "Change character avatar",
+  "character.avatar.hint": "Photo",
+  "status.avatarUpdated": "Avatar updated.",
+
+  // ── Party panel ───────────────────────────────────────────────────────────────
+  "party.title": "Party",
+  "party.ariaLabel": "Party panel",
+  "party.hp": "{current}/{max} HP",
 };

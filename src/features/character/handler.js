@@ -6,6 +6,40 @@ import { renderAbilityDashboard, renderSkillDashboard, renderSaveDashboard } fro
 import { queueSave } from "../../app/store.js";
 import { t } from "../../shared/i18n.js";
 
+// ─── Avatar resize helper ─────────────────────────────────────────────────────
+
+function resizeImageToBase64(file, maxW, maxH) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Lecture impossible"));
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("Image invalide"));
+      img.onload = () => {
+        const scale  = Math.min(maxW / img.width, maxH / img.height, 1);
+        const canvas = document.createElement("canvas");
+        canvas.width  = Math.round(img.width  * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", 0.78));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+/** Handle click actions for the character feature. @returns {boolean} */
+export function handleCharacterAction(button) {
+  if (button.dataset.action === "upload-avatar") {
+    const fileInput = document.getElementById("avatar-file-input");
+    if (!fileInput) return false;
+    fileInput.click();
+    return true;
+  }
+  return false;
+}
+
 function applyNumericCharacterField(field, value) {
   if (value === "") return;
 
@@ -100,6 +134,22 @@ export function handleCharacterInput(target) {
 
 /** Handle change events for character feature. @returns {boolean} */
 export function handleCharacterChange(target) {
+  if (target.id === "avatar-file-input") {
+    const file = target.files?.[0];
+    if (!file) return true;
+    resizeImageToBase64(file, 100, 100)
+      .then((base64) => {
+        state.character.avatar = base64;
+        setStatus("info", t("status.avatarUpdated"));
+        commit(false);
+      })
+      .catch((err) => {
+        setStatus("error", err.message);
+        commit(false);
+      });
+    return true;
+  }
+
   if (target.matches("[data-skill-checkbox]")) {
     const key = target.dataset.skillCheckbox;
     state.character.skillProficiencies = target.checked

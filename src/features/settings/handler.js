@@ -4,16 +4,22 @@ import { sendTestWebhook } from "../../adapters/discord.js";
 import { connectSync, disconnectSync, publishRoll } from "../../adapters/firebase-sync.js";
 import { createSessionBaseline } from "../../adapters/anti-cheat.js";
 import { restoreLockedCharacter, toInt } from "../../core/character.js";
+import { connectParty, disconnectParty } from "../party/handler.js";
 import { t } from "../../shared/i18n.js";
 
 // ─── Firebase sync reconnect ──────────────────────────────────────────────────
 
 export function reconnectSync() {
   disconnectSync();
+  disconnectParty();
   connectSync({
     firebaseUrl: state.settings.firebaseUrl,
     roomId     : state.settings.syncRoom,
     onRoll     : handleRemoteRoll,
+  });
+  connectParty({
+    firebaseUrl: state.settings.firebaseUrl,
+    roomId     : state.settings.syncRoom,
   });
 }
 

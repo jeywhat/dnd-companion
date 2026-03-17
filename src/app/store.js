@@ -3,14 +3,16 @@ import { clamp, toInt } from "../core/character.js";
 import { HISTORY_LIMIT, ROLL_MODES } from "../data/constants.js";
 import { uniqueId } from "../shared/dom.js";
 import { sendHpWebhook } from "../adapters/discord.js";
+import { publishParty } from "../adapters/firebase-sync.js";
 import { t } from "../shared/i18n.js";
 
 export let appElement = null;
 export let state = null;
 
-let saveTimerId = 0;
-let hpNotifyTimerId = 0;
-let hpNotifyFromHp = null;
+let saveTimerId       = 0;
+let hpNotifyTimerId   = 0;
+let hpNotifyFromHp    = null;
+let partySyncTimerId  = 0;
 
 // Injected at startup by main.js to avoid circular dep with app/renderer.js
 let _renderFn = () => {};
@@ -22,6 +24,7 @@ export function injectRender(fn) {
 export function initStore(container) {
   appElement = container;
   state = loadState();
+  state.party = {}; // runtime-only, not persisted
 }
 
 export function getCharacterName() {
@@ -41,6 +44,25 @@ export function getModeLabel(mode) {
 export function queueSave() {
   window.clearTimeout(saveTimerId);
   saveTimerId = window.setTimeout(() => saveState(state), 150);
+}
+
+export function queuePartySync() {
+  window.clearTimeout(partySyncTimerId);
+  partySyncTimerId = window.setTimeout(() => {
+    publishParty({
+      firebaseUrl: state.settings.firebaseUrl,
+      roomId     : state.settings.syncRoom,
+      member     : {
+        name     : state.character.name,
+        className: state.character.className,
+        level    : state.character.level,
+        currentHp: state.character.currentHp,
+        hpMax    : state.character.hpMax,
+        avatar   : state.character.avatar || "",
+        diceColor: state.settings.diceColor,
+      },
+    });
+  }, 600);
 }
 
 export function setStatus(tone, message) {
@@ -99,12 +121,14 @@ function normaliseRuntimeState() {
 export function commit(syncInputs = true) {
   normaliseRuntimeState();
   queueSave();
+  queuePartySync();
   _renderFn(syncInputs);
 }
 
 export function resetToDefault() {
   clearStorage();
   state = loadState();
+  state.party = {};
 }
 
 export function getCleanupHandlers() {
@@ -112,6 +136,7 @@ export function getCleanupHandlers() {
     flush: () => {
       window.clearTimeout(saveTimerId);
       window.clearTimeout(hpNotifyTimerId);
+      window.clearTimeout(partySyncTimerId);
       saveState(state);
     }
   };

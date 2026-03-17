@@ -5,7 +5,7 @@ import { setLocale } from "../shared/i18n.js";
 import { handleCombatAction } from "../features/combat/handler.js";
 import { handleRollsAction, handleRollsChange } from "../features/rolls/handler.js";
 import { handleGrimoireAction, handleGrimoireSubmit } from "../features/grimoire/handler.js";
-import { handleCharacterInput, handleCharacterChange, handleCharacterSubmit } from "../features/character/handler.js";
+import { handleCharacterInput, handleCharacterChange, handleCharacterSubmit, handleCharacterAction } from "../features/character/handler.js";
 import { handleSettingsAction, handleSettingsInput } from "../features/settings/handler.js";
 
 function switchTab(tab) {
@@ -25,6 +25,7 @@ const ACTION_HANDLERS = [
   handleCombatAction,
   handleRollsAction,
   handleGrimoireAction,
+  handleCharacterAction,
   handleSettingsAction,
 ];
 
@@ -53,7 +54,7 @@ function handleInput(event) {
 function handleChange(event) {
   const target = event.target;
 
-  if (!(target instanceof HTMLInputElement)) {
+  if (!(target instanceof HTMLInputElement) && !(target instanceof HTMLSelectElement)) {
     return;
   }
 

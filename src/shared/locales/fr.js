@@ -296,4 +296,15 @@ export const fr = {
   // ── Integrity check ──────────────────────────────────────────────────────────
   "integrity.d20Label": "Intégrité du d20",
   "integrity.d20Expected": "Valeur 1 à 20",
+
+  // ── Avatar du personnage ──────────────────────────────────────────────────────
+  "character.avatar.label": "Avatar",
+  "character.avatar.ariaLabel": "Modifier l'avatar du personnage",
+  "character.avatar.hint": "Photo",
+  "status.avatarUpdated": "Avatar mis à jour.",
+
+  // ── Panneau du groupe ─────────────────────────────────────────────────────────
+  "party.title": "Groupe",
+  "party.ariaLabel": "Panneau du groupe",
+  "party.hp": "{current}/{max} PV",
 };

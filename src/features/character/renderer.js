@@ -37,6 +37,20 @@ export function renderFormValues(syncInputs = true) {
     }
   }
 
+  // ── Avatar ──────────────────────────────────────────────────────────────────
+  const avatarImg         = appElement.querySelector("[data-avatar-preview]");
+  const avatarPlaceholder = appElement.querySelector("[data-avatar-placeholder]");
+  if (avatarImg && avatarPlaceholder) {
+    if (state.character.avatar) {
+      avatarImg.src    = state.character.avatar;
+      avatarImg.hidden = false;
+      avatarPlaceholder.hidden = true;
+    } else {
+      avatarImg.hidden = true;
+      avatarPlaceholder.hidden = false;
+    }
+  }
+
   appElement.querySelector("[data-character-title]").textContent = state.character.name || t("app.defaultCharName");
   appElement.querySelector("[data-character-subtitle]").textContent =
     t("character.subtitle", { class: state.character.className || t("app.defaultClass"), level: state.character.level });
