@@ -24,8 +24,8 @@ export function getAppTemplate() {
             aria-label="${t("lang.ariaLabel")}"
             title="${t("lang.ariaLabel")}"
           >
-            <option value="fr" ${locale === "fr" ? "selected" : ""}>🇫🇷 Français</option>
-            <option value="en" ${locale === "en" ? "selected" : ""}>🇬🇧 English</option>
+            <option value="fr" ${locale === "fr" ? "selected" : ""}>🇫🇷</option>
+            <option value="en" ${locale === "en" ? "selected" : ""}>🇬🇧</option>
           </select>
           <button
             type="button"

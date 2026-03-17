@@ -1,4 +1,4 @@
-# 🎲 Compagnon D&D — D&D 5e Live Companion App (Currently only available in French)
+# 🎲 Compagnon D&D — D&D 5e Live Companion App
 
 <div align="center">
 
@@ -7,6 +7,7 @@
 ![JavaScript](https://img.shields.io/badge/JavaScript-ES2024-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
 ![Firebase](https://img.shields.io/badge/Firebase-Realtime%20DB-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)
 ![Discord](https://img.shields.io/badge/Discord-Webhook-5865F2?style=for-the-badge&logo=discord&logoColor=white)
+![i18n](https://img.shields.io/badge/i18n-FR%20%7C%20EN-22c55e?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge)
 
 **A real-time D&D 5e companion app with 3D dice, multiplayer sync, and Discord notifications.**  
@@ -23,12 +24,13 @@ No account required. No pay-to-play. Just open and roll.
 - [✨ Features](#-features)
 - [🖼️ Screenshots](#️-screenshots)
 - [⚡ Quick Start](#-quick-start)
+- [🌍 Internationalization (i18n)](#-internationalization-i18n)
 - [🔧 Configuration](#-configuration)
   - [🔗 URL Parameters (Share Links)](#-url-parameters-share-links)
   - [🔥 Firebase Realtime Sync](#-firebase-realtime-sync)
   - [📣 Discord Webhooks](#-discord-webhooks)
 - [🚀 Deployment](#-deployment)
-- [🏗️ Tech Stack](#️-tech-stack)
+- [🏗️ Architecture](#️-architecture)
 - [📁 Project Structure](#-project-structure)
 - [🤝 Contributing](#-contributing)
 - [📄 License](#-license)
@@ -77,6 +79,11 @@ Automatic rich embeds for every action:
 - All 6 saving throws with proficiency tracking
 - Passive Perception auto-calculation
 
+### 🌍 Multilingual Support
+- 🇫🇷 **French** (default) and 🇬🇧 **English** — switchable via a flag dropdown in the top-right corner
+- Preference persisted in `localStorage` — no page reload required
+- All UI strings, status messages, error messages, aria-labels, and confirm dialogs are fully translated
+
 ### 📱 Mobile-First UI
 - Responsive bottom navigation bar always accessible
 - Touch-friendly controls with large tap targets
@@ -106,13 +113,13 @@ Automatic rich embeds for every action:
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/dnd-dashboard.git
-cd dnd-dashboard
+git clone https://github.com/YOUR_USERNAME/dnd-companion.git
+cd dnd-companion
 
 # Install dependencies
 npm install
 
-# Start development server (Vite only, port 5173)
+# Start development server (Vite, port 5173)
 npm run dev
 ```
 
@@ -124,6 +131,50 @@ Then open [http://localhost:5173](http://localhost:5173) in your browser.
 3. Enter your **Firebase Database URL** and a **Room Name**
 4. Fill in your character on the **Character Sheet** tab 📜
 5. Share the pre-filled URL with your party (see [Share Links](#-url-parameters-share-links))
+
+---
+
+## 🌍 Internationalization (i18n)
+
+The app ships with **French (🇫🇷, default)** and **English (🇬🇧)** and can be extended to any language.
+
+### Switching Language
+Click the flag dropdown in the **top-right corner** of the header. The entire UI updates instantly without a page reload.
+
+### Adding a New Language
+
+1. Copy `src/shared/locales/fr.js` → `src/shared/locales/xx.js`
+2. Translate all values (keys must remain unchanged)
+3. Register the locale in `src/shared/i18n.js`:
+
+```js
+import { xx } from "./locales/xx.js";
+const TRANSLATIONS = { fr, en, xx };
+```
+
+4. Add an `<option>` in `src/app/shell.js`:
+
+```html
+<option value="xx">🏳️</option>
+```
+
+### i18n Architecture
+
+```
+src/shared/
+├── i18n.js              # t(key, params) function + setLocale / getLocale
+└── locales/
+    ├── fr.js            # French translations (~150 keys)
+    └── en.js            # English translations (~150 keys)
+```
+
+All strings use **named-parameter interpolation**:
+
+```js
+t("status.hpAdjusted", { current: 8, max: 20 })
+// FR → "PV ajustés à 8/20."
+// EN → "HP adjusted to 8/20."
+```
 
 ---
 
@@ -182,23 +233,6 @@ Firebase Realtime Database is used for **zero-infrastructure multiplayer sync** 
 
 > ⚠️ For production, restrict read/write to authenticated users or specific room names.
 
-#### Data Structure
-
-```
-your-project.firebaseio.com/
-└── rooms/
-    └── campaign-one/          ← room name (lowercase, hyphenated)
-        ├── sessionAbc123/     ← auto-generated per browser session
-        │   ├── characterName: "Aragorn"
-        │   ├── label:         "Attack Roll"
-        │   ├── rolls:         [{"sides": 20, "value": 17}]
-        │   ├── total:         22
-        │   ├── diceColor:     "#7c3aed"
-        │   └── timestamp:     1712345678
-        └── sessionXyz456/     ← another player
-            └── ...
-```
-
 ### 📣 Discord Webhooks
 
 #### Setup
@@ -221,7 +255,7 @@ your-project.firebaseio.com/
 | 🏆 Critical Hit | Natural 20 | Gold |
 | 💀 Critical Fail | Natural 1 | Red |
 
-> **HP notifications are debounced by 3 seconds** to prevent spam when clicking buttons repeatedly.
+> **HP notifications are debounced by 4 seconds** to prevent spam when clicking buttons repeatedly.
 
 ---
 
@@ -248,42 +282,98 @@ npm run build
 
 ---
 
-## 🏗️ Tech Stack
+## 🏗️ Architecture
 
-| Layer | Technology |
-|-------|-----------|
-| **Frontend** | Vanilla JS (ES2024), HTML5, CSS3 |
-| **Bundler** | [Vite 8](https://vitejs.dev/) |
-| **3D Dice** | [@3d-dice/dice-box 1.1.4](https://github.com/3d-dice/dice-box) |
-| **Multiplayer** | [Firebase Realtime Database](https://firebase.google.com/products/realtime-database) (SSE — no SDK) |
-| **Notifications** | Discord Webhooks REST API |
+The codebase follows **Clean Architecture (Ports & Adapters)** combined with **Feature-Sliced Design (FSD)** — enabling focused, single-feature commits and clear separation of concerns.
 
-> **No React, No Vue, No Angular, No backend** — pure vanilla JS for maximum performance and minimal bundle size.
+```
+┌────────────────────────────────────────────────────────────┐
+│                       UI / Shell                            │
+│  app/shell.js · app/renderer.js · app/events.js · main.js  │
+├─────────────┬──────────────────────────────────────────────┤
+│  Features   │  combat · rolls · grimoire · character · settings │
+│  (FSD)      │  Each: renderer.js + handler.js              │
+├─────────────┴──────────────────────────────────────────────┤
+│                  Application State                          │
+│                    app/store.js                             │
+├────────────────────────┬───────────────────────────────────┤
+│  Core (Domain)         │  Adapters (Ports)                  │
+│  core/character.js     │  adapters/storage.js               │
+│  core/dice.js          │  adapters/discord.js               │
+│                        │  adapters/firebase-sync.js         │
+│                        │  adapters/dice-animation.js        │
+│                        │  adapters/anti-cheat.js            │
+├────────────────────────┴───────────────────────────────────┤
+│                  Shared Utilities                           │
+│  shared/dom.js · shared/damage-parser.js                   │
+│  shared/i18n.js · shared/locales/{fr,en}.js                │
+└────────────────────────────────────────────────────────────┘
+```
+
+### Key Design Patterns
+
+| Pattern | Where | Purpose |
+|---------|-------|---------|
+| **Dependency Inversion** | `store.js → injectRender(fn)` | Avoids circular dep `store ↔ renderer` |
+| **Handler chain** | `events.js → ACTION_HANDLERS[]` | Each handler returns `true` if consumed |
+| **Ports & Adapters** | `adapters/` folder | Swap Firebase/Discord without touching domain |
+| **i18n** | `shared/i18n.js` | Synchronous `t(key, params)` with named interpolation |
 
 ---
 
 ## 📁 Project Structure
 
 ```
-dnd-dashboard/
+dnd-companion/
 ├── src/
-│   ├── main.js                 # Application entry point
-│   ├── styles.css              # All styles (responsive, animations)
-│   ├── data/
-│   │   └── constants.js        # D&D abilities, skills, defaults
-│   └── services/
-│       ├── antiCheat.js        # Session baseline & integrity monitoring
-│       ├── character.js        # Modifier & bonus calculations
-│       ├── dice.js             # Roll logic with crypto RNG
-│       ├── diceAnimation.js    # 3D dice-box wrapper & overlays
-│       ├── discord.js          # Webhook payloads & sending
-│       ├── firebaseSync.js     # SSE listener & publisher
-│       └── storage.js          # localStorage persistence
+│   ├── main.js                      # Bootstrap (10 lines)
+│   ├── styles.css                   # All styles (responsive, animations)
+│   ├── app/
+│   │   ├── events.js                # Event routing & action dispatch
+│   │   ├── renderer.js              # Aggregated render() function
+│   │   ├── shell.js                 # Static HTML shell template
+│   │   └── store.js                 # Singleton state + commit/setStatus
+│   ├── core/                        # Pure domain logic (no side effects)
+│   │   ├── character.js             # Modifiers, bonuses, proficiencies
+│   │   └── dice.js                  # Roll validation with crypto RNG
+│   ├── adapters/                    # External service wrappers (Ports)
+│   │   ├── anti-cheat.js            # Session baseline & integrity
+│   │   ├── dice-animation.js        # @3d-dice/dice-box wrapper
+│   │   ├── discord.js               # Webhook payloads & sending
+│   │   ├── firebase-sync.js         # SSE listener & publisher
+│   │   └── storage.js               # localStorage persistence
+│   ├── features/                    # Feature-Sliced Design modules
+│   │   ├── combat/
+│   │   │   ├── handler.js           # HP, attacks, initiative actions
+│   │   │   └── renderer.js          # Attack cards, last action, history
+│   │   ├── rolls/
+│   │   │   ├── engine.js            # performRoll() — shared by all features
+│   │   │   ├── handler.js           # Ability/skill/save/free dice actions
+│   │   │   ├── renderer.js          # Ability/skill/save dashboards
+│   │   │   └── templates.js         # Reusable HTML template builders
+│   │   ├── grimoire/
+│   │   │   ├── handler.js           # Cast spell, slot management
+│   │   │   └── renderer.js          # Spell slots, spell list
+│   │   ├── character/
+│   │   │   ├── handler.js           # Form inputs, attack form submit
+│   │   │   └── renderer.js          # Form values sync, ability hints
+│   │   └── settings/
+│   │       ├── handler.js           # Discord, Firebase, export/import, lock
+│   │       └── renderer.js          # Session lock summary
+│   ├── shared/                      # Cross-feature utilities
+│   │   ├── damage-parser.js         # Parse "1d8+3" damage strings
+│   │   ├── dom.js                   # escapeHtml, uniqueId, updateFieldValue
+│   │   ├── i18n.js                  # t(key, params) — locale engine
+│   │   └── locales/
+│   │       ├── fr.js                # French translations (default, ~150 keys)
+│   │       └── en.js                # English translations (~150 keys)
+│   └── data/
+│       └── constants.js             # ABILITIES, SKILLS, ROLL_MODES, defaults
 ├── public/
-│   └── assets/dice-box/        # 3D dice WebGL assets
-├── dist/                       # Production build output (git-ignored)
-├── index.html                  # SPA entry point
-├── vite.config.js              # Vite build configuration
+│   └── assets/dice-box/             # 3D dice WebGL assets (large, ~2MB)
+├── dist/                            # Production build output (git-ignored)
+├── index.html                       # SPA entry point
+├── vite.config.js                   # Vite build configuration
 └── package.json
 ```
 
@@ -295,8 +385,8 @@ Contributions are welcome! Here's how to get started:
 
 ```bash
 # Fork the repo, then clone your fork
-git clone https://github.com/YOUR_USERNAME/dnd-dashboard.git
-cd dnd-dashboard
+git clone https://github.com/YOUR_USERNAME/dnd-companion.git
+cd dnd-companion
 npm install
 npm run dev
 ```
@@ -305,16 +395,27 @@ npm run dev
 
 - Keep PRs focused — one feature or fix per PR
 - Follow the existing code style (vanilla JS, no frameworks)
+- All identifiers (variables, functions, keys) must be in **English**
+- UI strings go through `t(key)` — never hardcode display text in JS/HTML
 - Test on both desktop and mobile
 - Update this README if you add user-facing features
 
+### Adding a Feature (FSD convention)
+
+Each feature lives in `src/features/<name>/` with two files:
+- `handler.js` — exports `handleXxxAction(button): boolean` and optional `handleXxxInput/Change/Submit`
+- `renderer.js` — exports `renderXxx()` functions called from `app/renderer.js`
+
+Register your handler in `src/app/events.js` → `ACTION_HANDLERS` array.
+
 ### Ideas for Contributions
 
-- 🌍 **Translations** — English UI alongside French
-- 🎨 **Themes** — Dark/light mode toggle
+- 🌍 **New language** — Add `src/shared/locales/de.js`, `es.js`, etc.
+- 🎨 **Themes** — Dark/light mode toggle (CSS custom properties ready)
 - 📊 **Roll History** — Persistent session log with statistics
 - 🃏 **Condition Tracker** — Track blinded, poisoned, stunned, etc.
 - 🗺️ **More Systems** — Pathfinder 2e, Shadowrun, Call of Cthulhu
+- 🔒 **Firebase Auth** — Secure rooms for production use
 
 ---
 
@@ -333,3 +434,4 @@ Made with ❤️ with AI for tabletop adventurers everywhere.
 ⭐ **Star this repo** if it helped your campaign!
 
 </div>
+
