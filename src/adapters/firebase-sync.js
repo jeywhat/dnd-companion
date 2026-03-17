@@ -25,6 +25,7 @@ function buildBase(firebaseUrl, roomId) {
 
 function processRoll(sid, roll) {
   if (sid === SESSION_ID) return;
+  if (sid.includes("/") || sid === "party") return; // ignorer les sous-chemins (ex: party/abc12345)
   if (!roll || typeof roll !== "object") return;
   console.info("[FirebaseSync] ✅ Jet reçu de", sid, roll);
   _onRoll?.(roll);
