@@ -5,8 +5,6 @@ import { escapeHtml } from "../../shared/dom.js";
 import { parseDamageString } from "../../shared/damage-parser.js";
 import { t } from "../../shared/i18n.js";
 
-const abilityMap = new Map(ABILITIES.map((a) => [a.key, a]));
-
 export function buildAttackCard(attack, { showDelete = false } = {}) {
   const attackBonus = getAttackBonus(state.character, attack);
   const abilityShort = t(`ability.${attack.ability}.short`);
