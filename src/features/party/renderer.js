@@ -52,8 +52,11 @@ export function renderParty() {
     diceColor: state.settings.diceColor,
   };
 
-  const others = Object.values(state.party || {});
-  const list   = panel.querySelector("[data-party-list]");
+  const ownName = (state.character.name || "").trim();
+  const others  = Object.values(state.party || {})
+    .filter(m => !ownName || (m.name || "").trim() !== ownName);
+
+  const list = panel.querySelector("[data-party-list]");
   if (!list) return;
 
   list.innerHTML = [
