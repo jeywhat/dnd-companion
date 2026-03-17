@@ -1,4 +1,5 @@
 import { ABILITIES, SKILLS } from "../data/constants.js";
+import { t } from "../shared/i18n.js";
 
 const abilityMap = new Map(ABILITIES.map((ability) => [ability.key, ability]));
 const skillMap = new Map(SKILLS.map((skill) => [skill.key, skill]));
@@ -25,11 +26,15 @@ export function calculateProficiencyBonus(level) {
 }
 
 export function getAbilityLabel(abilityKey) {
-  return abilityMap.get(abilityKey)?.label ?? abilityKey;
+  return t(`ability.${abilityKey}`) || abilityMap.get(abilityKey)?.label || abilityKey;
+}
+
+export function getAbilityShort(abilityKey) {
+  return t(`ability.${abilityKey}.short`) || abilityMap.get(abilityKey)?.short || abilityKey.toUpperCase().slice(0, 3);
 }
 
 export function getSkillLabel(skillKey) {
-  return skillMap.get(skillKey)?.label ?? skillKey;
+  return t(`skill.${skillKey}`) || skillMap.get(skillKey)?.label || skillKey;
 }
 
 export function getSkillDefinition(skillKey) {
@@ -101,7 +106,7 @@ export function detectLockedChanges(baseline, character) {
 
   if (baseline.level !== current.level) {
     changes.push({
-      label: "Niveau",
+      label: t("character.level.label"),
       from: baseline.level,
       to: current.level
     });
@@ -113,7 +118,7 @@ export function detectLockedChanges(baseline, character) {
 
     if (previousValue !== nextValue) {
       changes.push({
-        label: ability.label,
+        label: getAbilityLabel(ability.key),
         from: previousValue,
         to: nextValue
       });
@@ -122,7 +127,7 @@ export function detectLockedChanges(baseline, character) {
 
   if (baseline.hpMax !== current.hpMax) {
     changes.push({
-      label: "PV maximum",
+      label: t("character.hpMax.label"),
       from: baseline.hpMax,
       to: current.hpMax
     });
@@ -130,7 +135,7 @@ export function detectLockedChanges(baseline, character) {
 
   if (baseline.armorClass !== current.armorClass) {
     changes.push({
-      label: "Classe d'armure",
+      label: t("character.ac.label"),
       from: baseline.armorClass,
       to: current.armorClass
     });
@@ -142,9 +147,9 @@ export function detectLockedChanges(baseline, character) {
 
     if (hadSkill !== hasSkill) {
       changes.push({
-        label: `Maîtrise ${skill.label}`,
-        from: hadSkill ? "maîtrisée" : "non maîtrisée",
-        to: hasSkill ? "maîtrisée" : "non maîtrisée"
+        label: getSkillLabel(skill.key),
+        from: hadSkill,
+        to: hasSkill
       });
     }
   }
@@ -155,9 +160,9 @@ export function detectLockedChanges(baseline, character) {
 
     if (hadSave !== hasSave) {
       changes.push({
-        label: `Sauvegarde ${ability.label}`,
-        from: hadSave ? "maîtrisée" : "non maîtrisée",
-        to: hasSave ? "maîtrisée" : "non maîtrisée"
+        label: `${t("rolls.saves.title")} ${getAbilityShort(ability.key)}`,
+        from: hadSave,
+        to: hasSave
       });
     }
   }

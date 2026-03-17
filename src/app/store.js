@@ -3,6 +3,7 @@ import { clamp, toInt } from "../core/character.js";
 import { HISTORY_LIMIT, ROLL_MODES } from "../data/constants.js";
 import { uniqueId } from "../shared/dom.js";
 import { sendHpWebhook } from "../adapters/discord.js";
+import { t } from "../shared/i18n.js";
 
 export let appElement = null;
 export let state = null;
@@ -24,20 +25,17 @@ export function initStore(container) {
 }
 
 export function getCharacterName() {
-  return state.character.name || "Aventurier";
+  return state.character.name || t("app.defaultCharName");
 }
 
 export function getCharacterSubtitle() {
-  const className = state.character.className || "Classe libre";
-  return `${className} • Niveau ${state.character.level}`;
+  const className = state.character.className || t("app.defaultClass");
+  return t("character.subtitle", { class: className, level: state.character.level });
 }
 
 export function getModeLabel(mode) {
-  return (
-    ROLL_MODES.find((entry) => entry.key === mode)?.label ??
-    ROLL_MODES.find((entry) => entry.key === "normal")?.label ??
-    "Normal"
-  );
+  const key = `rollMode.${mode}`;
+  return t(key) !== key ? t(key) : (ROLL_MODES.find((entry) => entry.key === mode)?.label ?? "Normal");
 }
 
 export function queueSave() {

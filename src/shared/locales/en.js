@@ -1,0 +1,299 @@
+/** @type {Record<string, string>} English locale */
+export const en = {
+  // ── App ─────────────────────────────────────────────────────────────────────
+  "app.name": "D&D Companion",
+  "app.defaultCharName": "Adventurer",
+  "app.defaultClass": "Free Class",
+  "app.defaultStatus": "Ready for adventure.",
+
+  // ── Abilities ────────────────────────────────────────────────────────────────
+  "ability.strength": "Strength",
+  "ability.strength.short": "STR",
+  "ability.dexterity": "Dexterity",
+  "ability.dexterity.short": "DEX",
+  "ability.constitution": "Constitution",
+  "ability.constitution.short": "CON",
+  "ability.intelligence": "Intelligence",
+  "ability.intelligence.short": "INT",
+  "ability.wisdom": "Wisdom",
+  "ability.wisdom.short": "WIS",
+  "ability.charisma": "Charisma",
+  "ability.charisma.short": "CHA",
+
+  // ── Skills ───────────────────────────────────────────────────────────────────
+  "skill.acrobatics": "Acrobatics",
+  "skill.animalHandling": "Animal Handling",
+  "skill.arcana": "Arcana",
+  "skill.athletics": "Athletics",
+  "skill.deception": "Deception",
+  "skill.history": "History",
+  "skill.insight": "Insight",
+  "skill.intimidation": "Intimidation",
+  "skill.investigation": "Investigation",
+  "skill.medicine": "Medicine",
+  "skill.nature": "Nature",
+  "skill.perception": "Perception",
+  "skill.performance": "Performance",
+  "skill.persuasion": "Persuasion",
+  "skill.religion": "Religion",
+  "skill.sleightOfHand": "Sleight of Hand",
+  "skill.stealth": "Stealth",
+  "skill.survival": "Survival",
+
+  // ── Roll modes ───────────────────────────────────────────────────────────────
+  "rollMode.normal": "Normal",
+  "rollMode.advantage": "Advantage",
+  "rollMode.disadvantage": "Disadvantage",
+
+  // ── Navigation ───────────────────────────────────────────────────────────────
+  "nav.ariaLabel": "Main navigation",
+  "nav.combat": "Combat",
+  "nav.rolls": "Rolls",
+  "nav.spells": "Spells",
+  "nav.character": "Sheet",
+  "nav.settings": "Settings",
+
+  // ── Language selector ────────────────────────────────────────────────────────
+  "lang.ariaLabel": "Language",
+
+  // ── Header ───────────────────────────────────────────────────────────────────
+  "header.brand": "D&D Companion",
+  "header.lockSession": "Lock session",
+  "header.unlockSession": "Unlock session",
+
+  // ── Dashboard — HP ───────────────────────────────────────────────────────────
+  "dashboard.hp.title": "Hit Points",
+  "dashboard.hp.currentLabel": "Current HP",
+  "dashboard.hp.currentAriaLabel": "Current hit points",
+  "dashboard.hp.adjustAriaLabel": "Adjust hit points",
+  "dashboard.hp.state.full": "Full",
+  "dashboard.hp.state.injured": "Injured",
+  "dashboard.hp.state.critical": "Critical",
+
+  // ── Dashboard — Armor class ──────────────────────────────────────────────────
+  "dashboard.ac.title": "Armor Class",
+  "dashboard.ac.pill": "Defense",
+  "dashboard.ac.note": "Value locked during session.",
+
+  // ── Dashboard — Proficiency ──────────────────────────────────────────────────
+  "dashboard.proficiency.title": "Proficiency",
+  "dashboard.proficiency.pill": "Calculated",
+  "dashboard.proficiency.passivePerception": "Passive Perception:",
+
+  // ── Dashboard — Initiative ───────────────────────────────────────────────────
+  "dashboard.initiative.ariaLabel": "Roll initiative (DEX)",
+  "dashboard.initiative.label": "Initiative Roll",
+
+  // ── Dashboard — Attacks / last action ───────────────────────────────────────
+  "dashboard.attacks.title": "Attacks",
+  "dashboard.attacks.subtitle": "Add your attacks from the character sheet.",
+  "dashboard.lastAction.title": "Last Action",
+  "dashboard.lastAction.subtitle": "Local history of recent rolls and spells.",
+
+  // ── Rolls panel ──────────────────────────────────────────────────────────────
+  "rolls.mode.title": "Roll Mode",
+  "rolls.mode.subtitle": "All buttons use this mode.",
+  "rolls.mode.ariaLabel": "Roll mode",
+  "rolls.free.title": "Free Dice",
+  "rolls.free.subtitle": "Choose your combination and roll.",
+  "rolls.abilities.title": "Abilities",
+  "rolls.abilities.subtitle": "Modifiers calculated automatically.",
+  "rolls.skills.title": "Skills",
+  "rolls.skills.subtitle": "18 quick actions ready for the table.",
+  "rolls.saves.title": "Saving Throws",
+  "rolls.saves.subtitle": "Proficiencies applied automatically.",
+
+  // ── Character panel ──────────────────────────────────────────────────────────
+  "character.section.ariaLabel": "Character sheet",
+  "character.identity.title": "Character Identity",
+  "character.name.label": "Name",
+  "character.class.label": "Class",
+  "character.level.label": "Level",
+  "character.abilities.title": "Abilities",
+  "character.defenses.title": "Defenses and Resources",
+  "character.hpMax.label": "Max HP",
+  "character.ac.label": "Armor Class",
+  "character.currentHp.label": "Current HP",
+  "character.skills.title": "Proficient Skills",
+  "character.saves.title": "Proficient Saves",
+  "character.attacks.title": "Attacks",
+  "character.attacks.nameLabel": "Attack Name",
+  "character.attacks.abilityLabel": "Ability",
+  "character.attacks.bonusLabel": "Fixed Bonus",
+  "character.attacks.damageLabel": "Damage / Note",
+  "character.attacks.damagePlaceholder": "1d8 + 3 slashing",
+  "character.attacks.proficiencyLabel": "Add proficiency",
+  "character.attacks.addButton": "Add Attack",
+  "character.modLabel": "Mod.",
+  "character.subtitle": "{class} \u2022 Level {level}",
+
+  // ── Grimoire panel ───────────────────────────────────────────────────────────
+  "grimoire.slots.title": "Spell Slots",
+  "grimoire.slots.subtitle": "Configure and track your spell slots by level. Automatically consumed when casting.",
+  "grimoire.slots.levelPrefix": "Lv.",
+  "grimoire.slots.longRest": "\uD83C\uDF19 Long Rest",
+  "grimoire.slots.reduceAriaLabel": "Reduce maximum level {level}",
+  "grimoire.slots.increaseAriaLabel": "Increase maximum level {level}",
+  "grimoire.slots.restoreAriaLabel": "Restore level {level}",
+  "grimoire.title": "Spellbook",
+  "grimoire.subtitle": "Add your favorite spells and cast them in one gesture.",
+  "grimoire.spell.nameLabel": "Spell Name",
+  "grimoire.spell.levelLabel": "Level",
+  "grimoire.spell.slotCostLabel": "Slot Cost",
+  "grimoire.spell.damageLabel": "Damage",
+  "grimoire.spell.damagePlaceholder": "2d6 fire, 1d8 necrotic\u2026",
+  "grimoire.spell.noteLabel": "Note / Effect",
+  "grimoire.spell.notePlaceholder": "6m area, DEX save, fire",
+  "grimoire.spell.addButton": "Add to Spellbook",
+  "grimoire.spell.castButton": "Cast",
+  "grimoire.spell.deleteButton": "Remove",
+  "grimoire.spell.levelCost": "Level {level} \u2022 Cost {cost}",
+  "grimoire.emptyState": "The spellbook is empty for now.",
+
+  // ── Settings panel ───────────────────────────────────────────────────────────
+  "settings.discord.title": "Discord Webhook",
+  "settings.discord.subtitle": "Paste your Discord webhook URL to receive roll, HP, and spell notifications directly in your channel.",
+  "settings.discord.urlLabel": "Webhook URL",
+  "settings.discord.urlPlaceholder": "https://discord.com/api/webhooks/\u2026",
+  "settings.discord.instructions": "In Discord: Channel Settings \u2192 Integrations \u2192 Webhooks \u2192 New Webhook \u2192 Copy URL.",
+  "settings.discord.testButton": "\uD83D\uDD14 Test Webhook",
+  "settings.discord.resetButton": "Reset Application",
+  "settings.sync.title": "\uD83C\uDFB2 Multiplayer Sync",
+  "settings.sync.subtitle": "See your teammates' dice rolls in real-time on your screen.",
+  "settings.sync.firebaseUrlLabel": "Firebase Realtime Database URL",
+  "settings.sync.firebaseUrlPlaceholder": "https://my-project-rtdb.firebaseio.com",
+  "settings.sync.roomLabel": "Session Name (room)",
+  "settings.sync.roomPlaceholder": "thorin-campaign",
+  "settings.sync.diceColorLabel": "Your Dice Color",
+  "settings.sync.diceColorNote": "Visible to other players on their screens",
+  "settings.sync.instructions": "Create a free Firebase project \u2192 Realtime Database \u2192 copy the URL.<br>Set DB rules to <code>\".read\": true, \".write\": true</code>.<br>All players in the same session see live dice animations.",
+  "settings.sync.testButton": "\uD83D\uDD17 Test Sync",
+  "settings.character.title": "Character Backup",
+  "settings.character.subtitle": "Export your character sheet to never lose it, even if cache is cleared.",
+  "settings.character.exportLabel": "Export",
+  "settings.character.exportDesc": "Downloads a <code>.json</code> file with your entire character sheet.",
+  "settings.character.exportButton": "\uD83D\uDCE5 Export",
+  "settings.character.importLabel": "Import",
+  "settings.character.importDesc": "Loads a character sheet from a previously exported <code>.json</code> file.",
+  "settings.character.importButton": "\uD83D\uDCE4 Import",
+  "settings.session.title": "Session Lock",
+  "settings.session.subtitle": "Monitors base stats and roll integrity.",
+
+  // ── Dice builder ─────────────────────────────────────────────────────────────
+  "dice.removeAriaLabel": "Remove a d{sides}",
+  "dice.addAriaLabel": "Add a d{sides}",
+  "dice.none": "No dice selected",
+  "dice.reset": "Reset",
+  "dice.roll": "\uD83C\uDFB2 Roll",
+  "dice.freeDie": "free d{sides}",
+
+  // ── Attack cards ─────────────────────────────────────────────────────────────
+  "attack.hitButton": "Hit",
+  "attack.damageButton": "Damage",
+  "attack.deleteButton": "Remove",
+  "attack.emptyState": "No attacks. Add one from the character sheet.",
+
+  // ── Last action card ──────────────────────────────────────────────────────────
+  "lastAction.empty": "No recent action.",
+  "lastAction.spellLabel": "Spell",
+  "lastAction.rollLabel": "Roll",
+  "lastAction.rollDetails": "d20: {rolls} \u2022 Bonus {bonus} \u2022 {mode}",
+
+  // ── Aria labels ───────────────────────────────────────────────────────────────
+  "aria.rollAbility": "Roll {label} with bonus {bonus}",
+  "aria.rollSkill": "Roll {label} with bonus {bonus}",
+  "aria.rollSave": "Roll {label} saving throw with bonus {bonus}",
+  "aria.testAbility": "Test {short}",
+
+  // ── Session lock summary ─────────────────────────────────────────────────────
+  "session.notLocked": "Session not yet locked. Activate it at the start of the game to freeze level, abilities, max HP, AC, and proficiencies.",
+  "session.locked.desc": "Session locked. Any suspicious modification is restored and reported to Discord.",
+  "session.stat.level": "Monitored level: {value}",
+  "session.stat.hpMax": "Monitored max HP: {value}",
+  "session.stat.ac": "Monitored AC: {value}",
+  "session.stat.skills": "Proficient skills: {value}",
+  "session.stat.saves": "Proficient saves: {value}",
+
+  // ── Remote roll popup ────────────────────────────────────────────────────────
+  "popup.rolling": "\uD83C\uDFB2 {name} \u2014 {label}\u2026",
+  "popup.result": "\uD83C\uDFB2 {name} \u2014 {label} \u2192 {total}",
+  "popup.critText": "Natural Critical",
+  "popup.fumbleText": "Critical Fumble",
+  "popup.defaultName": "Adventurer",
+  "popup.defaultLabel": "Roll",
+  "popup.defaultRollLabel": "Dice Roll",
+
+  // ── Roll labels (passed as performRoll `label`) ──────────────────────────────
+  "roll.abilityLabel": "Test {label}",
+  "roll.saveLabel": "{label} Save",
+  "roll.hitLabel": "Hit \u2014 {name}",
+  "roll.damageNote": "Damage: {damage}",
+  "roll.syncTestLabel": "Synchronization Test",
+
+  // ── Status messages ──────────────────────────────────────────────────────────
+  "status.hpAdjusted": "HP adjusted to {current}/{max}.",
+  "status.characterSaved": "Character sheet updated and saved locally.",
+  "status.characterValueUpdated": "Character value updated.",
+  "status.hpUpdated": "Current HP updated.",
+  "status.skillsUpdated": "Skill proficiencies updated.",
+  "status.savesUpdated": "Save proficiencies updated.",
+  "status.abilityUpdated": "Ability updated.",
+  "status.attackAdded": "Attack added to the sheet.",
+  "status.attackRemoved": "Attack removed.",
+  "status.spellAdded": "Spell added to spellbook.",
+  "status.spellRemoved": "Spell removed from spellbook.",
+  "status.spellAnnounced": "{name} announced on Discord.{slotMsg}",
+  "status.slotMsg": " \u2014 level {level} slots remaining: {remaining}",
+  "status.longRest": "Long rest: all spell slots have been restored.",
+  "status.settingSaved": "Setting saved locally.",
+  "status.sessionLocked": "Session locked: base stats are now monitored.",
+  "status.sessionUnlocked": "Session lock disabled.",
+  "status.discordTestSuccess": "\uD83D\uDD14 Test message sent to Discord!",
+  "status.syncTestSuccess": "\uD83D\uDD17 Test roll published! Other players in the same session should see it.",
+  "status.exportSuccess": "Character sheet exported successfully.",
+  "status.importSuccess": "Character \"{name}\" imported successfully.",
+  "status.appReset": "Application reset locally.",
+  "status.configuredFromUrl": "\u2705 Configured from URL: {items}",
+  "status.rollMode": "Roll mode: {mode}.",
+  "status.rollResult": "{label} \u2192 **{total}**{suffix}",
+  "status.rollCriticalSuffix": " \uD83D\uDCA5 Critical!",
+  "status.rollFumbleSuffix": " \uD83D\uDC80 Critical Fumble",
+  "status.damageResult": "Damage {name} \u2192 {total}",
+  "status.discordFailed": "Discord connection failed: {error}",
+  "status.syncNotConfigured": "Configure the Firebase URL and session name first.",
+  "status.syncFailed": "Sync failed: {error}",
+  "status.integrityRestored": "Locked modification detected. Monitored values have been restored.",
+  "status.integrityAlertSent": "Anti-cheat alert sent to the GM.",
+  "status.integrityAlertFailed": "Alert detected, but Discord failed: {error}",
+
+  // ── Config-from-URL item labels ───────────────────────────────────────────────
+  "config.webhook": "Discord Webhook",
+  "config.firebase": "Firebase",
+  "config.room": "Room \"{name}\"",
+
+  // ── Error messages ───────────────────────────────────────────────────────────
+  "error.attackNotFound": "The requested attack was not found.",
+  "error.damageNotRecognized": "Damage for \"{name}\" not recognized. Use a format like \"1d8+3\".",
+  "error.attackNameRequired": "Attack name is required.",
+  "error.spellNotFound": "The requested spell was not found.",
+  "error.notEnoughSlots": "Not enough level {level} slots (available: {available}/{max}, cost: {cost}).",
+  "error.spellNameRequired": "Spell name is required.",
+  "error.importInvalidFile": "This file is not a valid D&D Companion character sheet.",
+  "error.importFailed": "Import failed: {error}",
+
+  // ── Confirm dialogs ──────────────────────────────────────────────────────────
+  "confirm.import": "Import character:\n\n\"{name}\" \u2014 {class} level {level}\n\nThis will replace your current character sheet. Your Discord settings will be preserved.",
+  "confirm.reset": "Reset the character sheet, spells, attacks, and local settings?",
+
+  // ── History entries ──────────────────────────────────────────────────────────
+  "history.antiCheatAlert": "Anti-cheat alert detected and state restored.",
+  "history.spellCast": "{name} casts {spell} (Level {level}).",
+  "history.rollResult": "{name}: {label} \u2192 {total} ({breakdown})",
+  "history.freeRoll": "{name} rolls {notation}: {total} [{details}]",
+  "history.singleDie": "{name} rolls {label}: {result}",
+  "history.damage": "Damage {spell}: {total} [{breakdown}]",
+
+  // ── Integrity check ──────────────────────────────────────────────────────────
+  "integrity.d20Label": "d20 Integrity",
+  "integrity.d20Expected": "Value 1 to 20",
+};

@@ -4,6 +4,7 @@ import { uniqueId } from "../../shared/dom.js";
 import { syncAbilityHints } from "./renderer.js";
 import { renderAbilityDashboard, renderSkillDashboard, renderSaveDashboard } from "../rolls/renderer.js";
 import { queueSave } from "../../app/store.js";
+import { t } from "../../shared/i18n.js";
 
 function applyNumericCharacterField(field, value) {
   if (value === "") return;
@@ -36,7 +37,7 @@ export function handleCharacterInput(target) {
 
     if (field === "name" || field === "className") {
       state.character[field] = target.value;
-      setStatus("info", "Fiche mise à jour et sauvegardée localement.");
+      setStatus("info", t("status.characterSaved"));
       commit(true);
       return true;
     }
@@ -49,7 +50,7 @@ export function handleCharacterInput(target) {
       applyNumericCharacterField(field, target.value);
     }
 
-    setStatus("info", "Valeur du personnage mise à jour.");
+    setStatus("info", t("status.characterValueUpdated"));
     commit(true);
     return true;
   }
@@ -81,7 +82,7 @@ export function handleCharacterInput(target) {
       0,
       state.character.hpMax
     );
-    setStatus("info", "PV actuels mis à jour.");
+    setStatus("info", t("status.hpUpdated"));
     queueHpNotify(previousHp);
     commit(true);
     return true;
@@ -105,7 +106,7 @@ export function handleCharacterChange(target) {
       ? [...state.character.skillProficiencies, key]
       : state.character.skillProficiencies.filter((k) => k !== key);
     state.character.skillProficiencies.sort();
-    setStatus("info", "Maîtrises de compétences mises à jour.");
+    setStatus("info", t("status.skillsUpdated"));
     commit(true);
     return true;
   }
@@ -116,7 +117,7 @@ export function handleCharacterChange(target) {
       ? [...state.character.saveProficiencies, key]
       : state.character.saveProficiencies.filter((k) => k !== key);
     state.character.saveProficiencies.sort();
-    setStatus("info", "Maîtrises de sauvegardes mises à jour.");
+    setStatus("info", t("status.savesUpdated"));
     commit(true);
     return true;
   }
@@ -126,7 +127,7 @@ export function handleCharacterChange(target) {
     const clamped = clamp(toInt(target.value, state.character.abilities[key]), 1, 30);
     state.character.abilities[key] = clamped;
     target.value = clamped;
-    setStatus("info", "Caractéristique mise à jour.");
+    setStatus("info", t("status.abilityUpdated"));
     commit(true);
     return true;
   }
@@ -142,7 +143,7 @@ export function handleCharacterSubmit(form) {
   const name = String(formData.get("name") ?? "").trim();
 
   if (!name) {
-    setStatus("error", "Le nom de l'attaque est obligatoire.");
+    setStatus("error", t("error.attackNameRequired"));
     commit(false);
     return true;
   }
@@ -162,7 +163,7 @@ export function handleCharacterSubmit(form) {
   form.reset();
   form.querySelector("input[name='proficient']").checked = true;
   form.querySelector("input[name='bonus']").value = "0";
-  setStatus("success", "Attaque ajoutée à la fiche.");
+  setStatus("success", t("status.attackAdded"));
   commit(true);
   return true;
 }

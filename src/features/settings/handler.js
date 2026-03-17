@@ -4,6 +4,7 @@ import { sendTestWebhook } from "../../adapters/discord.js";
 import { connectSync, disconnectSync, publishRoll } from "../../adapters/firebase-sync.js";
 import { createSessionBaseline } from "../../adapters/anti-cheat.js";
 import { restoreLockedCharacter, toInt } from "../../core/character.js";
+import { t } from "../../shared/i18n.js";
 
 // ─── Firebase sync reconnect ──────────────────────────────────────────────────
 
@@ -28,7 +29,7 @@ export function applyWebhookFromUrl() {
     const decoded = decodeURIComponent(wh);
     if (decoded.startsWith("https://discord.com/api/webhooks/")) {
       state.settings.webhookUrl = decoded;
-      messages.push("Webhook Discord");
+      messages.push(t("config.webhook"));
       anyChanged = true;
     }
     params.delete("wh");
@@ -37,7 +38,7 @@ export function applyWebhookFromUrl() {
   const fb = params.get("fb");
   if (fb) {
     state.settings.firebaseUrl = decodeURIComponent(fb);
-    messages.push("Firebase");
+    messages.push(t("config.firebase"));
     anyChanged = true;
     params.delete("fb");
   }
@@ -45,7 +46,7 @@ export function applyWebhookFromUrl() {
   const room = params.get("room");
   if (room) {
     state.settings.syncRoom = decodeURIComponent(room);
-    messages.push(`Salon "${room}"`);
+    messages.push(t("config.room", { name: room }));
     anyChanged = true;
     params.delete("room");
   }
@@ -57,7 +58,7 @@ export function applyWebhookFromUrl() {
       : window.location.pathname;
     history.replaceState(null, "", clean);
     window.setTimeout(() => {
-      setStatus("success", `✅ Configuré depuis l'URL : ${messages.join(", ")}`);
+      setStatus("success", t("status.configuredFromUrl", { items: messages.join(", ") }));
     }, 200);
   }
 }
@@ -72,11 +73,11 @@ export async function handleSettingsAction(button) {
     if (state.sessionLock.isLocked) {
       state.sessionLock.isLocked = false;
       state.sessionLock.baseline = null;
-      setStatus("info", "Verrouillage de session désactivé.");
+      setStatus("info", t("status.sessionUnlocked"));
     } else {
       state.sessionLock.isLocked = true;
       state.sessionLock.baseline = createSessionBaseline(state.character);
-      setStatus("success", "Session verrouillée : les statistiques de base sont surveillées.");
+      setStatus("success", t("status.sessionLocked"));
     }
     commit(false);
     return true;
@@ -85,10 +86,10 @@ export async function handleSettingsAction(button) {
   if (action === "test-discord") {
     try {
       await sendTestWebhook(state.settings, getCharacterName());
-      setStatus("success", "🔔 Message de test envoyé sur Discord !");
+      setStatus("success", t("status.discordTestSuccess"));
       commit(false);
     } catch (error) {
-      setStatus("error", `Connexion Discord échouée : ${error.message}`);
+      setStatus("error", t("status.discordFailed", { error: error.message }));
       commit(false);
     }
     return true;
@@ -96,7 +97,7 @@ export async function handleSettingsAction(button) {
 
   if (action === "test-sync") {
     if (!state.settings.firebaseUrl || !state.settings.syncRoom) {
-      setStatus("error", "Configurez l'URL Firebase et le nom de la session d'abord.");
+      setStatus("error", t("status.syncNotConfigured"));
       return true;
     }
     try {
@@ -106,15 +107,15 @@ export async function handleSettingsAction(button) {
         roll: {
           type         : "damage",
           characterName: getCharacterName() || "Test",
-          label        : "Test de synchronisation",
+          label        : t("roll.syncTestLabel"),
           diceMap      : { 6: 2 },
           flat         : 0,
           total        : 7,
         },
       });
-      setStatus("success", "🔗 Jet de test publié ! Les autres joueurs dans la même session devraient le voir.");
+      setStatus("success", t("status.syncTestSuccess"));
     } catch (err) {
-      setStatus("error", `Échec de la sync : ${err.message}`);
+      setStatus("error", t("status.syncFailed", { error: err.message }));
     }
     return true;
   }
@@ -136,7 +137,7 @@ export async function handleSettingsAction(button) {
     a.download = `${charName}-dnd.json`;
     a.click();
     URL.revokeObjectURL(url);
-    setStatus("success", "Fiche exportée avec succès.");
+    setStatus("success", t("status.exportSuccess"));
     return true;
   }
 
@@ -154,15 +155,15 @@ export async function handleSettingsAction(button) {
         const data = JSON.parse(text);
 
         if (data._app !== "Compagnon D&D" || !data.character || typeof data.character !== "object") {
-          throw new Error("Ce fichier n'est pas une fiche Compagnon D&D valide.");
+          throw new Error(t("error.importInvalidFile"));
         }
 
-        const charName = data.character.name || "Inconnu";
-        const charClass = data.character.className || "Classe inconnue";
+        const charName = data.character.name || t("app.defaultCharName");
+        const charClass = data.character.className || t("app.defaultClass");
         const charLevel = data.character.level ?? "?";
 
         const confirmed = window.confirm(
-          `Importer le personnage :\n\n« ${charName} » — ${charClass} niveau ${charLevel}\n\nCela remplacera votre fiche actuelle. Vos réglages Discord seront conservés.`
+          t("confirm.import", { name: charName, class: charClass, level: charLevel })
         );
 
         if (!confirmed) return;
@@ -170,10 +171,10 @@ export async function handleSettingsAction(button) {
         const sanitised = sanitiseState({ character: data.character });
         state.character = sanitised.character;
 
-        setStatus("success", `Personnage "${charName}" importé avec succès.`);
+        setStatus("success", t("status.importSuccess", { name: charName }));
         commit(true);
       } catch (err) {
-        setStatus("error", `Importation échouée : ${err.message}`);
+        setStatus("error", t("error.importFailed", { error: err.message }));
         commit(false);
       }
     });
@@ -183,14 +184,12 @@ export async function handleSettingsAction(button) {
   }
 
   if (action === "reset-app") {
-    const confirmed = window.confirm(
-      "Réinitialiser la fiche, les sorts, les attaques et les réglages locaux ?"
-    );
+    const confirmed = window.confirm(t("confirm.reset"));
 
     if (!confirmed) return true;
 
     resetToDefault();
-    setStatus("info", "Application réinitialisée localement.");
+    setStatus("info", t("status.appReset"));
     commit(true);
     return true;
   }
@@ -202,7 +201,7 @@ export async function handleSettingsAction(button) {
 export function handleSettingsInput(target) {
   if (target.matches("[data-setting-field]")) {
     state.settings[target.dataset.settingField] = target.value.trim();
-    setStatus("info", "Paramètre sauvegardé localement.");
+    setStatus("info", t("status.settingSaved"));
     commit(true);
 
     if (target.dataset.settingField === "firebaseUrl" || target.dataset.settingField === "syncRoom") {
@@ -286,15 +285,15 @@ function _buildResultContent(roll, isCritical = false, isFumble = false) {
     ? `<div class="rpop-chip rpop-chip--flat"><span class="rpop-chip-value">${flat > 0 ? "+" : ""}${flat}</span></div>`
     : "";
   const badge = isCritical
-    ? `<div class="rpop-special rpop-special--crit"><span class="rpop-special-stars">✦</span> Critique Naturel <span class="rpop-special-stars">✦</span></div>`
+    ? `<div class="rpop-special rpop-special--crit"><span class="rpop-special-stars">✦</span> ${t("popup.critText")} <span class="rpop-special-stars">✦</span></div>`
     : isFumble
-    ? `<div class="rpop-special rpop-special--fumble">💀 Échec Critique 💀</div>`
+    ? `<div class="rpop-special rpop-special--fumble">💀 ${t("popup.fumbleText")} 💀</div>`
     : "";
   const totalClass = isCritical ? " rpop-total--crit" : isFumble ? " rpop-total--fumble" : "";
   return `
     <div class="rpop-meta">
-      <span class="rpop-name">${roll.characterName || "Aventurier"}</span>
-      <span class="rpop-label">${roll.label || "Jet"}</span>
+      <span class="rpop-name">${roll.characterName || t("popup.defaultName")}</span>
+      <span class="rpop-label">${roll.label || t("popup.defaultLabel")}</span>
     </div>
     ${badge}
     <div class="rpop-chips">${chips}${flatChip}</div>
@@ -303,13 +302,13 @@ function _buildResultContent(roll, isCritical = false, isFumble = false) {
 
 function handleRemoteRoll(roll) {
   const color   = roll.diceColor || "#7c3aed";
-  const name    = roll.characterName || "Aventurier";
-  const label   = roll.label || "Jet de dés";
+  const name    = roll.characterName || t("popup.defaultName");
+  const label   = roll.label || t("popup.defaultRollLabel");
   const diceMap = roll.diceMap || {};
   const pkey    = name;
 
   if (!roll.rolls) {
-    showRemoteBanner(`🎲 ${name} — ${label}…`);
+    showRemoteBanner(t("popup.rolling", { name, label }));
 
     const existing = _remotePopups.get(pkey);
     if (existing) {
@@ -356,7 +355,7 @@ function handleRemoteRoll(roll) {
     _remotePopups.set(pkey, { el: popup, timer: null, interval, diceList });
 
   } else {
-    showRemoteBanner(`🎲 ${name} — ${label} → ${roll.total ?? "?"}`);
+    showRemoteBanner(t("popup.result", { name, label, total: roll.total ?? "?" }));
 
     const entry = _remotePopups.get(pkey);
     if (entry) { clearInterval(entry.interval); entry.interval = null; }
@@ -381,8 +380,8 @@ function handleRemoteRoll(roll) {
         const badge = document.createElement("div");
         badge.className = `rpop-special rpop-special--${isCritical ? "crit" : "fumble"}`;
         badge.innerHTML = isCritical
-          ? `<span class="rpop-special-stars">✦</span> Critique Naturel <span class="rpop-special-stars">✦</span>`
-          : `💀 Échec Critique 💀`;
+          ? `<span class="rpop-special-stars">✦</span> ${t("popup.critText")} <span class="rpop-special-stars">✦</span>`
+          : `💀 ${t("popup.fumbleText")} 💀`;
         p.querySelector(".rpop-slots")?.before(badge);
       }
 

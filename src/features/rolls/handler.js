@@ -6,6 +6,7 @@ import { publishRoll } from "../../adapters/firebase-sync.js";
 import { performRoll } from "./engine.js";
 import { FREE_DICE } from "./templates.js";
 import { appElement } from "../../app/store.js";
+import { t } from "../../shared/i18n.js";
 
 function readFreeDiceMap() {
   const map = {};
@@ -32,7 +33,7 @@ function updateFreeDiceNotation() {
   const rollBtn = appElement.querySelector("[data-action='dice-builder-roll']");
 
   if (notationEl) {
-    notationEl.textContent = parts.length > 0 ? parts.join(" + ") : "Aucun dé sélectionné";
+    notationEl.textContent = parts.length > 0 ? parts.join(" + ") : t("dice.none");
   }
 
   if (rollBtn) {
@@ -47,7 +48,7 @@ export async function handleRollsAction(button) {
   if (action === "roll-ability") {
     const abilityKey = button.dataset.rollKey;
     await performRoll({
-      label: `Test ${getAbilityLabel(abilityKey)}`,
+      label: t("roll.abilityLabel", { label: getAbilityLabel(abilityKey) }),
       bonus: calculateModifier(state.character.abilities[abilityKey])
     });
     return true;
@@ -65,7 +66,7 @@ export async function handleRollsAction(button) {
   if (action === "roll-save") {
     const abilityKey = button.dataset.rollKey;
     await performRoll({
-      label: `Sauvegarde ${getAbilityLabel(abilityKey)}`,
+      label: t("roll.saveLabel", { label: getAbilityLabel(abilityKey) }),
       bonus: getSaveBonus(state.character, abilityKey)
     });
     return true;
@@ -112,7 +113,6 @@ export async function handleRollsAction(button) {
 
     const { rolls, total, notation } = await triggerMultiDiceAnimation(diceMap, 0, null, state.settings.diceColor);
     const individualLabel = rolls.map((r) => `${r.value} (d${r.sides})`).join(", ");
-    const localSummary = `${getCharacterName()} lance ${notation} : ${total} [${individualLabel}]`;
 
     state.ui.lastRoll = {
       kind: "roll",
@@ -127,7 +127,7 @@ export async function handleRollsAction(button) {
       note: ""
     };
 
-    addHistory(localSummary, "roll");
+    addHistory(t("history.freeRoll", { name: getCharacterName(), notation, total, details: individualLabel }), "roll");
     setStatus("info", `${notation} → ${total}`);
     sendFreeDiceWebhook(state.settings, { characterName: getCharacterName(), diceMap, rolls, total, notation });
 
@@ -152,7 +152,7 @@ export async function handleRollsAction(button) {
 
   if (action === "roll-free-die") {
     const sides = toInt(button.dataset.dieSides, 20);
-    const label = `d${sides} libre`;
+    const label = t("dice.freeDie", { sides });
     const diceMap = { [sides]: 1 };
 
     publishRoll({
@@ -183,9 +183,9 @@ export async function handleRollsAction(button) {
       note: ""
     };
 
-    const localSummary = `${getCharacterName()} lance ${label} : ${baseRoll}`;
-    addHistory(localSummary, "roll");
-    setStatus("info", `${localSummary}.`);
+    const historyText = t("history.singleDie", { name: getCharacterName(), label, result: baseRoll });
+    addHistory(historyText, "roll");
+    setStatus("info", `${historyText}.`);
     sendFreeDiceWebhook(state.settings, {
       characterName: getCharacterName(),
       diceMap,
@@ -229,7 +229,7 @@ export function handleRollsInput(target) {
 export function handleRollsChange(target) {
   if (target.matches("[data-roll-mode-control]")) {
     state.ui.rollMode = target.value;
-    setStatus("info", `Mode de jet : ${getModeLabel(state.ui.rollMode)}.`);
+    setStatus("info", t("status.rollMode", { mode: getModeLabel(state.ui.rollMode) }));
     commit(true);
     return true;
   }

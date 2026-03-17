@@ -1,6 +1,7 @@
 import { appElement, state } from "../../app/store.js";
 import { escapeHtml } from "../../shared/dom.js";
 import { clamp, toInt } from "../../core/character.js";
+import { t } from "../../shared/i18n.js";
 
 export function renderSpellSlots() {
   const container = appElement.querySelector("[data-spell-slots]");
@@ -23,16 +24,16 @@ export function renderSpellSlots() {
 
     return `
       <div class="slot-row">
-        <span class="slot-level">Niv.&nbsp;${level}</span>
+        <span class="slot-level">${t("grimoire.slots.levelPrefix")}&nbsp;${level}</span>
         <div class="slot-dots">${dots}</div>
         <span class="slot-fraction${available === 0 && slot.max > 0 ? " slot-fraction--empty" : ""}">${available}/${slot.max}</span>
         <div class="slot-controls">
           <button type="button" class="dice-stepper-btn" data-action="slot-adjust-max" data-slot-level="${level}" data-slot-delta="-1"
-            ${slot.max <= 0 ? "disabled" : ""} aria-label="Réduire maximum niveau ${level}">−</button>
+            ${slot.max <= 0 ? "disabled" : ""} aria-label="${t("grimoire.slots.reduceAriaLabel", { level })}">−</button>
           <button type="button" class="dice-stepper-btn" data-action="slot-adjust-max" data-slot-level="${level}" data-slot-delta="1"
-            ${slot.max >= 9 ? "disabled" : ""} aria-label="Augmenter maximum niveau ${level}">+</button>
+            ${slot.max >= 9 ? "disabled" : ""} aria-label="${t("grimoire.slots.increaseAriaLabel", { level })}">+</button>
           <button type="button" class="ghost-button slot-restore-btn" data-action="slot-restore-level" data-slot-level="${level}"
-            ${available >= slot.max ? "disabled" : ""} aria-label="Restaurer niveau ${level}">↺</button>
+            ${available >= slot.max ? "disabled" : ""} aria-label="${t("grimoire.slots.restoreAriaLabel", { level })}">↺</button>
         </div>
       </div>
     `;
@@ -41,10 +42,10 @@ export function renderSpellSlots() {
   container.innerHTML = `
     <div class="section-heading" style="margin-bottom:0.75rem">
       <div>
-        <h2>Emplacements de sorts</h2>
-        <p class="muted">Configurez et suivez vos emplacements par niveau. Automatiquement consommés à l'incantation.</p>
+        <h2>${t("grimoire.slots.title")}</h2>
+        <p class="muted">${t("grimoire.slots.subtitle")}</p>
       </div>
-      <button type="button" class="ghost-button" data-action="slot-long-rest">🌙 Repos long</button>
+      <button type="button" class="ghost-button" data-action="slot-long-rest">${t("grimoire.slots.longRest")}</button>
     </div>
     <div class="slot-rows">${rows}</div>
   `;
@@ -65,7 +66,7 @@ export function renderSpells() {
               <div>
                 <h3>${escapeHtml(spell.name)}</h3>
                 <p class="muted">
-                  Niveau ${spell.level} • Coût ${spell.slotCost}
+                  ${t("grimoire.spell.levelCost", { level: spell.level, cost: spell.slotCost })}
                   ${spell.damage ? ` • ⚔️ ${escapeHtml(spell.damage)}` : ""}
                   ${spell.note ? ` • ${escapeHtml(spell.note)}` : ""}
                 </p>
@@ -77,7 +78,7 @@ export function renderSpells() {
                   data-action="cast-spell"
                   data-spell-id="${spell.id}"
                 >
-                  Lancer
+                  ${t("grimoire.spell.castButton")}
                 </button>
                 <button
                   type="button"
@@ -85,12 +86,12 @@ export function renderSpells() {
                   data-action="remove-spell"
                   data-spell-id="${spell.id}"
                 >
-                  Supprimer
+                  ${t("grimoire.spell.deleteButton")}
                 </button>
               </div>
             </article>
           `
         )
         .join("")
-    : `<p class="empty-state">Le grimoire est vide pour l'instant.</p>`;
+    : `<p class="empty-state">${t("grimoire.emptyState")}</p>`;
 }

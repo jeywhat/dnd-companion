@@ -4,6 +4,7 @@ import { validateD20Result } from "../../core/dice.js";
 import { sendRollWebhook, sendAlertWebhook } from "../../adapters/discord.js";
 import { publishRoll } from "../../adapters/firebase-sync.js";
 import { restoreLockedCharacter } from "../../core/character.js";
+import { t } from "../../shared/i18n.js";
 
 let integrityRestoring = false;
 
@@ -16,11 +17,8 @@ export async function reportIntegrityIssue(changes, source) {
 
   try {
     state.character = restoreLockedCharacter(state.character, state.sessionLock.baseline);
-    addHistory("Alerte anti-triche détectée et état restauré.", "alert");
-    setStatus(
-      "error",
-      "Modification verrouillée détectée. Les valeurs surveillées ont été restaurées."
-    );
+    addHistory(t("history.antiCheatAlert"), "alert");
+    setStatus("error", t("status.integrityRestored"));
     commit(false);
 
     try {
@@ -29,10 +27,10 @@ export async function reportIntegrityIssue(changes, source) {
         changes,
         source
       });
-      setStatus("error", "Alerte anti-triche envoyée au MJ.");
+      setStatus("error", t("status.integrityAlertSent"));
       commit(false);
     } catch (error) {
-      setStatus("error", `Alerte détectée, mais Discord a échoué : ${error.message}`);
+      setStatus("error", t("status.integrityAlertFailed", { error: error.message }));
       commit(false);
     }
   } finally {
@@ -63,7 +61,7 @@ export async function performRoll({ label, bonus, note = "" }) {
     validateD20Result(baseRoll);
   } catch (error) {
     await reportIntegrityIssue(
-      [{ label: "Intégrité du d20", from: "Valeur 1 à 20", to: error.message }],
+      [{ label: t("integrity.d20Label"), from: t("integrity.d20Expected"), to: error.message }],
       "runtime"
     );
     throw error;
@@ -79,8 +77,7 @@ export async function performRoll({ label, bonus, note = "" }) {
 
   state.ui.lastRoll = { kind: "roll", ...result, note };
 
-  const localSummary = `${getCharacterName()} : ${label} → ${total} (${baseRoll} ${bonus >= 0 ? "+" : "-"} ${Math.abs(bonus)})`;
-  addHistory(localSummary, "roll");
+  addHistory(t("history.rollResult", { name: getCharacterName(), label, total, breakdown }), "roll");
 
   sendRollWebhook(state.settings, { ...result, label, bonus, characterName: getCharacterName() });
 
@@ -100,6 +97,7 @@ export async function performRoll({ label, bonus, note = "" }) {
     },
   });
 
-  setStatus("success", `${label} → **${total}**${isCritical ? " 💥 Critique !" : isFumble ? " 💀 Échec critique" : ""}`);
+  const suffix = isCritical ? t("status.rollCriticalSuffix") : isFumble ? t("status.rollFumbleSuffix") : "";
+  setStatus("success", t("status.rollResult", { label, total, suffix }));
   commit(false);
 }

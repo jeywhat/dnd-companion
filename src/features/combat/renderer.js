@@ -3,13 +3,13 @@ import { formatSignedNumber, getAttackBonus } from "../../core/character.js";
 import { getModeLabel } from "../../app/store.js";
 import { escapeHtml } from "../../shared/dom.js";
 import { parseDamageString } from "../../shared/damage-parser.js";
-import { ABILITIES } from "../../data/constants.js";
+import { t } from "../../shared/i18n.js";
 
 const abilityMap = new Map(ABILITIES.map((a) => [a.key, a]));
 
 export function buildAttackCard(attack, { showDelete = false } = {}) {
   const attackBonus = getAttackBonus(state.character, attack);
-  const abilityShort = abilityMap.get(attack.ability)?.short ?? "";
+  const abilityShort = t(`ability.${attack.ability}.short`);
   const parsed = attack.damage ? parseDamageString(attack.damage) : null;
 
   const hitBtn = `
@@ -18,7 +18,7 @@ export function buildAttackCard(attack, { showDelete = false } = {}) {
       class="roll-button attack-hit-btn"
       data-action="roll-attack"
       data-attack-id="${attack.id}"
-    >Toucher</button>
+    >${t("attack.hitButton")}</button>
   `;
 
   const dmgBtn = parsed
@@ -27,7 +27,7 @@ export function buildAttackCard(attack, { showDelete = false } = {}) {
         class="roll-button attack-dmg-btn"
         data-action="roll-damage"
         data-attack-id="${attack.id}"
-      >Dégâts</button>`
+      >${t("attack.damageButton")}</button>`
     : "";
 
   const deleteBtn = showDelete
@@ -36,7 +36,7 @@ export function buildAttackCard(attack, { showDelete = false } = {}) {
         class="ghost-button"
         data-action="remove-attack"
         data-attack-id="${attack.id}"
-      >Supprimer</button>`
+      >${t("attack.deleteButton")}</button>`
     : "";
 
   return `
@@ -58,7 +58,7 @@ export function buildAttackCard(attack, { showDelete = false } = {}) {
 export function renderAttacks() {
   const dashboardContainer = appElement.querySelector("[data-attacks-dashboard]");
   const managerContainer = appElement.querySelector("[data-attack-manager]");
-  const emptyState = `<p class="empty-state">Aucune attaque. Ajoutez-en une depuis la fiche personnage.</p>`;
+  const emptyState = `<p class="empty-state">${t("attack.emptyState")}</p>`;
 
   if (dashboardContainer) {
     dashboardContainer.innerHTML = state.character.attacks.length
@@ -79,11 +79,11 @@ export function renderLastAction() {
 
   if (lastActionContainer) {
     if (!state.ui.lastRoll) {
-      lastActionContainer.innerHTML = `<p class="empty-state">Aucune action récente.</p>`;
+      lastActionContainer.innerHTML = `<p class="empty-state">${t("lastAction.empty")}</p>`;
     } else if (state.ui.lastRoll.kind === "spell") {
       lastActionContainer.innerHTML = `
         <article class="last-action-card">
-          <p class="eyebrow">Sort</p>
+          <p class="eyebrow">${t("lastAction.spellLabel")}</p>
           <h3>${escapeHtml(state.ui.lastRoll.label)}</h3>
           <p>${escapeHtml(state.ui.lastRoll.description)}</p>
         </article>
@@ -93,7 +93,7 @@ export function renderLastAction() {
         <article class="last-action-card">
           <div class="card-header-inline">
             <div>
-              <p class="eyebrow">Jet</p>
+              <p class="eyebrow">${t("lastAction.rollLabel")}</p>
               <h3>${escapeHtml(state.ui.lastRoll.label)}</h3>
             </div>
             <span class="result-badge ${
@@ -107,9 +107,11 @@ export function renderLastAction() {
             </span>
           </div>
           <p class="muted">
-            d20 : ${state.ui.lastRoll.rolls.join(" / ")} • Bonus ${formatSignedNumber(
-              state.ui.lastRoll.bonus
-            )} • ${getModeLabel(state.ui.lastRoll.mode)}
+            ${t("lastAction.rollDetails", {
+              rolls: state.ui.lastRoll.rolls.join(" / "),
+              bonus: formatSignedNumber(state.ui.lastRoll.bonus),
+              mode: getModeLabel(state.ui.lastRoll.mode)
+            })}
           </p>
           ${
             state.ui.lastRoll.note

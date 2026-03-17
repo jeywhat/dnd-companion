@@ -1,12 +1,11 @@
 import { ABILITIES, SKILLS, ROLL_MODES } from "../../data/constants.js";
-
-const abilityMap = new Map(ABILITIES.map((ability) => [ability.key, ability]));
+import { t } from "../../shared/i18n.js";
 
 export function buildAbilityFormTemplate() {
   return ABILITIES.map(
     (ability) => `
       <label class="field compact-field" for="ability-${ability.key}">
-        <span>${ability.label} (${ability.short})</span>
+        <span>${t("ability." + ability.key)} (${t("ability." + ability.key + ".short")})</span>
         <input
           id="ability-${ability.key}"
           name="ability-${ability.key}"
@@ -17,7 +16,7 @@ export function buildAbilityFormTemplate() {
           data-ability-input="${ability.key}"
           data-lock-sensitive="true"
         />
-        <span class="field-hint">Mod. <strong data-ability-mod-hint="${ability.key}">+0</strong></span>
+        <span class="field-hint">${t("character.modLabel")} <strong data-ability-mod-hint="${ability.key}">+0</strong></span>
       </label>
     `
   ).join("");
@@ -29,8 +28,8 @@ export function buildSkillChecklistTemplate() {
       <label class="check-tile">
         <input type="checkbox" data-skill-checkbox="${skill.key}" data-lock-sensitive="true" />
         <span class="check-tile-body">
-          <strong>${skill.label}</strong>
-          <span>${abilityMap.get(skill.ability)?.short ?? ""}</span>
+          <strong>${t("skill." + skill.key)}</strong>
+          <span>${t("ability." + skill.ability + ".short")}</span>
         </span>
       </label>
     `
@@ -43,8 +42,8 @@ export function buildSaveChecklistTemplate() {
       <label class="check-tile">
         <input type="checkbox" data-save-checkbox="${ability.key}" data-lock-sensitive="true" />
         <span class="check-tile-body">
-          <strong>${ability.label}</strong>
-          <span>${ability.short}</span>
+          <strong>${t("ability." + ability.key)}</strong>
+          <span>${t("ability." + ability.key + ".short")}</span>
         </span>
       </label>
     `
@@ -56,7 +55,7 @@ export function buildRollModeTemplate() {
     (mode) => `
       <label class="mode-option">
         <input type="radio" name="roll-mode" value="${mode.key}" data-roll-mode-control />
-        <span>${mode.label}</span>
+        <span>${t("rollMode." + mode.key)}</span>
       </label>
     `
   ).join("");
@@ -75,7 +74,7 @@ export function buildFreeDiceBuilderTemplate() {
             class="dice-stepper-btn"
             data-action="die-qty-dec"
             data-die-sides="${sides}"
-            aria-label="Enlever un d${sides}"
+            aria-label="${t("dice.removeAriaLabel", { sides })}"
           >−</button>
           <span class="dice-stepper-value" data-die-qty="${sides}">0</span>
           <button
@@ -83,7 +82,7 @@ export function buildFreeDiceBuilderTemplate() {
             class="dice-stepper-btn"
             data-action="die-qty-inc"
             data-die-sides="${sides}"
-            aria-label="Ajouter un d${sides}"
+            aria-label="${t("dice.addAriaLabel", { sides })}"
           >+</button>
         </div>
       </div>
@@ -94,13 +93,13 @@ export function buildFreeDiceBuilderTemplate() {
     <div class="dice-builder">
       <div class="dice-builder-rows">${rows}</div>
       <div class="dice-builder-footer">
-        <p class="dice-builder-notation" data-dice-notation>Aucun dé sélectionné</p>
+        <p class="dice-builder-notation" data-dice-notation>${t("dice.none")}</p>
         <div class="dice-builder-actions">
           <button type="button" class="dice-reset-btn" data-action="dice-builder-reset">
-            Réinitialiser
+            ${t("dice.reset")}
           </button>
           <button type="button" class="dice-roll-btn" data-action="dice-builder-roll" disabled>
-            🎲 Lancer
+            ${t("dice.roll")}
           </button>
         </div>
       </div>

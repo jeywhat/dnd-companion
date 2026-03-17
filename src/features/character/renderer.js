@@ -2,6 +2,7 @@ import { ABILITIES, SKILLS } from "../../data/constants.js";
 import { appElement, state } from "../../app/store.js";
 import { calculateModifier, calculateProficiencyBonus, formatSignedNumber, getSkillBonus } from "../../core/character.js";
 import { updateFieldValue } from "../../shared/dom.js";
+import { t } from "../../shared/i18n.js";
 
 export function syncAbilityHints() {
   for (const ability of ABILITIES) {
@@ -36,9 +37,9 @@ export function renderFormValues(syncInputs = true) {
     }
   }
 
-  appElement.querySelector("[data-character-title]").textContent = state.character.name || "Aventurier";
+  appElement.querySelector("[data-character-title]").textContent = state.character.name || t("app.defaultCharName");
   appElement.querySelector("[data-character-subtitle]").textContent =
-    `${state.character.className || "Classe libre"} • Niveau ${state.character.level}`;
+    t("character.subtitle", { class: state.character.className || t("app.defaultClass"), level: state.character.level });
   appElement.querySelector("[data-current-hp-display]").textContent = state.character.currentHp;
   appElement.querySelector("[data-max-hp-display]").textContent = state.character.hpMax;
   appElement.querySelector("[data-armor-class-display]").textContent = state.character.armorClass;
@@ -56,10 +57,10 @@ export function renderFormValues(syncInputs = true) {
   const hpPercent = Math.round((state.character.currentHp / state.character.hpMax) * 100);
   appElement.querySelector("[data-hp-track]").style.width = `${hpPercent}%`;
   appElement.querySelector("[data-hp-state]").textContent =
-    hpPercent <= 25 ? "Critique" : hpPercent <= 60 ? "Blessé" : "Plein";
+    hpPercent <= 25 ? t("dashboard.hp.state.critical") : hpPercent <= 60 ? t("dashboard.hp.state.injured") : t("dashboard.hp.state.full");
 
   const lockButton = appElement.querySelector("[data-action='toggle-lock']");
-  const lockLabel = state.sessionLock.isLocked ? "Déverrouiller la session" : "Verrouiller la session";
+  const lockLabel = state.sessionLock.isLocked ? t("header.unlockSession") : t("header.lockSession");
   lockButton.setAttribute("aria-label", lockLabel);
   lockButton.title = lockLabel;
   lockButton.setAttribute("aria-pressed", String(state.sessionLock.isLocked));

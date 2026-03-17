@@ -5,12 +5,13 @@ import { publishRoll } from "../../adapters/firebase-sync.js";
 import { parseDamageString } from "../../shared/damage-parser.js";
 import { clamp, toInt } from "../../core/character.js";
 import { uniqueId as domUniqueId } from "../../shared/dom.js";
+import { t } from "../../shared/i18n.js";
 
 async function castSpell(spellId) {
   const spell = state.character.spells.find((s) => s.id === spellId);
 
   if (!spell) {
-    throw new Error("Le sort demandé est introuvable.");
+    throw new Error(t("error.spellNotFound"));
   }
 
   const isCantrip = spell.level === 0;
@@ -23,7 +24,7 @@ async function castSpell(spellId) {
     if (slot && slot.max > 0) {
       if (slot.used + slotCost > slot.max) {
         const avail = slot.max - slot.used;
-        setStatus("error", `Plus assez d'emplacements niv. ${slotLevel} (disponibles : ${avail}/${slot.max}, coût : ${slotCost}).`);
+        setStatus("error", t("error.notEnoughSlots", { level: slotLevel, available: avail, max: slot.max, cost: slotCost }));
         commit(false);
         return;
       }
@@ -35,16 +36,16 @@ async function castSpell(spellId) {
   state.ui.lastRoll = {
     kind: "spell",
     label: spell.name,
-    description: `${getCharacterName()} lance ${spell.name} (Niveau ${spell.level}, coût ${slotCost} empl. niv. ${slotLevel}).`
+    description: t("history.spellCast", { name: getCharacterName(), spell: spell.name, level: spell.level })
   };
-  addHistory(`${getCharacterName()} lance ${spell.name} (Niveau ${spell.level}).`, "spell");
+  addHistory(t("history.spellCast", { name: getCharacterName(), spell: spell.name, level: spell.level }), "spell");
 
   sendSpellWebhook(state.settings, { spell, characterName: getCharacterName(), slotsRemaining });
 
   const slotMsg = slotsRemaining !== null
-    ? ` — emplacements niv. ${slotLevel} restants : ${slotsRemaining}`
+    ? t("status.slotMsg", { level: slotLevel, remaining: slotsRemaining })
     : "";
-  setStatus("success", `${spell.name} annoncé sur Discord.${slotMsg}`);
+  setStatus("success", t("status.spellAnnounced", { name: spell.name, slotMsg }));
   commit(false);
 
   if (spell.damage?.trim()) {
@@ -56,7 +57,7 @@ async function castSpell(spellId) {
         roll: {
           type         : "damage",
           characterName: getCharacterName(),
-          label        : `${spell.name} (dégâts)`,
+          label        : `${spell.name} (${t("attack.damageButton")})`,
           diceMap      : parsed.diceMap,
           flat         : parsed.flat,
           diceColor    : state.settings.diceColor,
@@ -66,10 +67,10 @@ async function castSpell(spellId) {
       const { rolls, total } = await triggerMultiDiceAnimation(parsed.diceMap, parsed.flat, null, state.settings.diceColor);
       const diceLabel = rolls.map((r) => `${r.value} (d${r.sides})`).join(" + ");
       const flatPart  = parsed.flat !== 0 ? ` ${parsed.flat > 0 ? "+" : ""}${parsed.flat}` : "";
-      addHistory(`Dégâts ${spell.name} : ${total} [${diceLabel}${flatPart}]`, "roll");
+      addHistory(t("history.damage", { spell: spell.name, total, breakdown: `${diceLabel}${flatPart}` }), "roll");
 
       await sendDamageWebhook(state.settings, {
-        label: `${spell.name} (dégâts)`,
+        label: `${spell.name} (${t("attack.damageButton")})`,
         characterName: getCharacterName(),
         diceMap: parsed.diceMap,
         flat: parsed.flat,
@@ -82,7 +83,7 @@ async function castSpell(spellId) {
         roll: {
           type         : "damage",
           characterName: getCharacterName(),
-          label        : `${spell.name} (dégâts)`,
+          label        : `${spell.name} (${t("attack.damageButton")})`,
           diceMap      : parsed.diceMap,
           rolls,
           flat         : parsed.flat,
@@ -126,7 +127,7 @@ export async function handleGrimoireAction(button) {
     for (let level = 1; level <= 9; level++) {
       state.character.spellSlots[level].used = 0;
     }
-    setStatus("success", "Repos long : tous les emplacements de sorts ont été restaurés.");
+    setStatus("success", t("status.longRest"));
     commit(true);
     return true;
   }
@@ -135,7 +136,7 @@ export async function handleGrimoireAction(button) {
     state.character.spells = state.character.spells.filter(
       (s) => s.id !== button.dataset.spellId
     );
-    setStatus("info", "Sort supprimé du grimoire.");
+    setStatus("info", t("status.spellRemoved"));
     commit(false);
     return true;
   }
@@ -151,7 +152,7 @@ export function handleGrimoireSubmit(form) {
   const name = String(formData.get("name") ?? "").trim();
 
   if (!name) {
-    setStatus("error", "Le nom du sort est obligatoire.");
+    setStatus("error", t("error.spellNameRequired"));
     commit(false);
     return true;
   }
@@ -171,7 +172,7 @@ export function handleGrimoireSubmit(form) {
   form.reset();
   form.querySelector("input[name='level']").value = "0";
   form.querySelector("input[name='slotCost']").value = "0";
-  setStatus("success", "Sort ajouté au grimoire.");
+  setStatus("success", t("status.spellAdded"));
   commit(true);
   return true;
 }

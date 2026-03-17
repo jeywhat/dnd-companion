@@ -137,6 +137,26 @@ button:active {
   flex-shrink: 0;
 }
 
+/* ─── Language selector ──────────────────────────────────────────────────────── */
+
+.locale-select {
+  appearance: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.4rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 0.78rem;
+  padding: 0.3rem 0.5rem;
+  transition: border-color 0.15s;
+}
+
+.locale-select:hover,
+.locale-select:focus-visible {
+  border-color: var(--accent);
+  outline: none;
+}
+
 /* ─── Discord profile chip (header) ──────────────────────────────────────────── */
 
 .discord-profile-slot {

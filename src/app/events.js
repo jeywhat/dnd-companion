@@ -1,4 +1,7 @@
 import { setStatus, commit, state, appElement } from "./store.js";
+import { render } from "./renderer.js";
+import { getAppTemplate } from "./shell.js";
+import { setLocale } from "../shared/i18n.js";
 import { handleCombatAction } from "../features/combat/handler.js";
 import { handleRollsAction, handleRollsChange } from "../features/rolls/handler.js";
 import { handleGrimoireAction, handleGrimoireSubmit } from "../features/grimoire/handler.js";
@@ -49,6 +52,13 @@ function handleInput(event) {
 
 function handleChange(event) {
   const target = event.target;
+
+  if (target.matches("[data-locale-select]")) {
+    setLocale(target.value);
+    appElement.innerHTML = getAppTemplate();
+    render(true);
+    return;
+  }
 
   if (!(target instanceof HTMLInputElement)) {
     return;

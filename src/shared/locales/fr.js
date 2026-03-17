@@ -1,0 +1,299 @@
+/** @type {Record<string, string>} French locale (default) */
+export const fr = {
+  // ── App ─────────────────────────────────────────────────────────────────────
+  "app.name": "Compagnon D&D",
+  "app.defaultCharName": "Aventurier",
+  "app.defaultClass": "Classe libre",
+  "app.defaultStatus": "Prêt pour l'aventure.",
+
+  // ── Abilities ────────────────────────────────────────────────────────────────
+  "ability.strength": "Force",
+  "ability.strength.short": "FOR",
+  "ability.dexterity": "Dextérité",
+  "ability.dexterity.short": "DEX",
+  "ability.constitution": "Constitution",
+  "ability.constitution.short": "CON",
+  "ability.intelligence": "Intelligence",
+  "ability.intelligence.short": "INT",
+  "ability.wisdom": "Sagesse",
+  "ability.wisdom.short": "SAG",
+  "ability.charisma": "Charisme",
+  "ability.charisma.short": "CHA",
+
+  // ── Skills ───────────────────────────────────────────────────────────────────
+  "skill.acrobatics": "Acrobaties",
+  "skill.animalHandling": "Dressage",
+  "skill.arcana": "Arcanes",
+  "skill.athletics": "Athlétisme",
+  "skill.deception": "Tromperie",
+  "skill.history": "Histoire",
+  "skill.insight": "Perspicacité",
+  "skill.intimidation": "Intimidation",
+  "skill.investigation": "Investigation",
+  "skill.medicine": "Médecine",
+  "skill.nature": "Nature",
+  "skill.perception": "Perception",
+  "skill.performance": "Représentation",
+  "skill.persuasion": "Persuasion",
+  "skill.religion": "Religion",
+  "skill.sleightOfHand": "Escamotage",
+  "skill.stealth": "Discrétion",
+  "skill.survival": "Survie",
+
+  // ── Roll modes ───────────────────────────────────────────────────────────────
+  "rollMode.normal": "Normal",
+  "rollMode.advantage": "Avantage",
+  "rollMode.disadvantage": "Désavantage",
+
+  // ── Navigation ───────────────────────────────────────────────────────────────
+  "nav.ariaLabel": "Navigation principale",
+  "nav.combat": "Combat",
+  "nav.rolls": "Jets",
+  "nav.spells": "Sorts",
+  "nav.character": "Fiche",
+  "nav.settings": "Réglages",
+
+  // ── Language selector ────────────────────────────────────────────────────────
+  "lang.ariaLabel": "Langue",
+
+  // ── Header ───────────────────────────────────────────────────────────────────
+  "header.brand": "Compagnon D&D",
+  "header.lockSession": "Verrouiller la session",
+  "header.unlockSession": "Déverrouiller la session",
+
+  // ── Dashboard — HP ───────────────────────────────────────────────────────────
+  "dashboard.hp.title": "Points de vie",
+  "dashboard.hp.currentLabel": "PV actuels",
+  "dashboard.hp.currentAriaLabel": "Points de vie actuels",
+  "dashboard.hp.adjustAriaLabel": "Ajuster les points de vie",
+  "dashboard.hp.state.full": "Plein",
+  "dashboard.hp.state.injured": "Blessé",
+  "dashboard.hp.state.critical": "Critique",
+
+  // ── Dashboard — Armor class ──────────────────────────────────────────────────
+  "dashboard.ac.title": "Classe d'armure",
+  "dashboard.ac.pill": "Défense",
+  "dashboard.ac.note": "Valeur verrouillée pendant la session.",
+
+  // ── Dashboard — Proficiency ──────────────────────────────────────────────────
+  "dashboard.proficiency.title": "Maîtrise",
+  "dashboard.proficiency.pill": "Calculée",
+  "dashboard.proficiency.passivePerception": "Perception passive :",
+
+  // ── Dashboard — Initiative ───────────────────────────────────────────────────
+  "dashboard.initiative.ariaLabel": "Lancer le jet d'initiative (DEX)",
+  "dashboard.initiative.label": "Jet d'Initiative",
+
+  // ── Dashboard — Attacks / last action ───────────────────────────────────────
+  "dashboard.attacks.title": "Attaques",
+  "dashboard.attacks.subtitle": "Ajoutez vos attaques depuis la fiche personnage.",
+  "dashboard.lastAction.title": "Dernière action",
+  "dashboard.lastAction.subtitle": "Historique local des derniers jets et sorts.",
+
+  // ── Rolls panel ──────────────────────────────────────────────────────────────
+  "rolls.mode.title": "Mode de jet",
+  "rolls.mode.subtitle": "Tous les boutons utilisent ce mode.",
+  "rolls.mode.ariaLabel": "Mode de jet",
+  "rolls.free.title": "Dés libres",
+  "rolls.free.subtitle": "Choisissez votre combinaison et lancez.",
+  "rolls.abilities.title": "Caractéristiques",
+  "rolls.abilities.subtitle": "Modificateurs calculés automatiquement.",
+  "rolls.skills.title": "Compétences",
+  "rolls.skills.subtitle": "18 actions rapides prêtes pour la table.",
+  "rolls.saves.title": "Jets de sauvegarde",
+  "rolls.saves.subtitle": "Maîtrises appliquées automatiquement.",
+
+  // ── Character panel ──────────────────────────────────────────────────────────
+  "character.section.ariaLabel": "Fiche du personnage",
+  "character.identity.title": "Identité du personnage",
+  "character.name.label": "Nom",
+  "character.class.label": "Classe",
+  "character.level.label": "Niveau",
+  "character.abilities.title": "Caractéristiques",
+  "character.defenses.title": "Défenses et ressources",
+  "character.hpMax.label": "PV maximum",
+  "character.ac.label": "Classe d'armure",
+  "character.currentHp.label": "PV actuels",
+  "character.skills.title": "Compétences maîtrisées",
+  "character.saves.title": "Sauvegardes maîtrisées",
+  "character.attacks.title": "Attaques",
+  "character.attacks.nameLabel": "Nom de l'attaque",
+  "character.attacks.abilityLabel": "Caractéristique",
+  "character.attacks.bonusLabel": "Bonus fixe",
+  "character.attacks.damageLabel": "Dégâts / note",
+  "character.attacks.damagePlaceholder": "1d8 + 3 tranchants",
+  "character.attacks.proficiencyLabel": "Ajoute la maîtrise",
+  "character.attacks.addButton": "Ajouter l'attaque",
+  "character.modLabel": "Mod.",
+  "character.subtitle": "{class} • Niveau {level}",
+
+  // ── Grimoire panel ───────────────────────────────────────────────────────────
+  "grimoire.slots.title": "Emplacements de sorts",
+  "grimoire.slots.subtitle": "Configurez et suivez vos emplacements par niveau. Automatiquement consommés à l'incantation.",
+  "grimoire.slots.levelPrefix": "Niv.",
+  "grimoire.slots.longRest": "🌙 Repos long",
+  "grimoire.slots.reduceAriaLabel": "Réduire maximum niveau {level}",
+  "grimoire.slots.increaseAriaLabel": "Augmenter maximum niveau {level}",
+  "grimoire.slots.restoreAriaLabel": "Restaurer niveau {level}",
+  "grimoire.title": "Grimoire",
+  "grimoire.subtitle": "Ajoutez vos sorts favoris puis lancez-les en un geste.",
+  "grimoire.spell.nameLabel": "Nom du sort",
+  "grimoire.spell.levelLabel": "Niveau",
+  "grimoire.spell.slotCostLabel": "Coût en emplacement",
+  "grimoire.spell.damageLabel": "Dégâts",
+  "grimoire.spell.damagePlaceholder": "2d6 feu, 1d8 nécrotique…",
+  "grimoire.spell.noteLabel": "Note / effet",
+  "grimoire.spell.notePlaceholder": "Zone de 6 m, jet de DEX, feu",
+  "grimoire.spell.addButton": "Ajouter au grimoire",
+  "grimoire.spell.castButton": "Lancer",
+  "grimoire.spell.deleteButton": "Supprimer",
+  "grimoire.spell.levelCost": "Niveau {level} • Coût {cost}",
+  "grimoire.emptyState": "Le grimoire est vide pour l'instant.",
+
+  // ── Settings panel ───────────────────────────────────────────────────────────
+  "settings.discord.title": "Webhook Discord",
+  "settings.discord.subtitle": "Collez l'URL de votre webhook Discord pour recevoir les notifications de jet, PV et sorts directement dans votre salon.",
+  "settings.discord.urlLabel": "URL du webhook",
+  "settings.discord.urlPlaceholder": "https://discord.com/api/webhooks/\u2026",
+  "settings.discord.instructions": "Dans Discord : Paramètres du salon \u2192 Intégrations \u2192 Webhooks \u2192 Nouveau webhook \u2192 Copier l'URL.",
+  "settings.discord.testButton": "🔔 Tester le webhook",
+  "settings.discord.resetButton": "Réinitialiser l'application",
+  "settings.sync.title": "🎲 Synchronisation multijoueur",
+  "settings.sync.subtitle": "Voir les lancers de dés de vos coéquipiers en temps réel sur votre écran.",
+  "settings.sync.firebaseUrlLabel": "URL Firebase Realtime Database",
+  "settings.sync.firebaseUrlPlaceholder": "https://mon-projet-rtdb.firebaseio.com",
+  "settings.sync.roomLabel": "Nom de la session (room)",
+  "settings.sync.roomPlaceholder": "campagne-de-thorin",
+  "settings.sync.diceColorLabel": "Couleur de vos dés",
+  "settings.sync.diceColorNote": "Visible par les autres joueurs sur leur écran",
+  "settings.sync.instructions": "Créez un projet Firebase gratuit \u2192 Realtime Database \u2192 copiez l'URL.<br>Réglez les règles DB sur <code>\".read\": true, \".write\": true</code>.<br>Tous les joueurs dans la même session voient les animations de dés en direct.",
+  "settings.sync.testButton": "🔗 Tester la sync",
+  "settings.character.title": "Sauvegarde du personnage",
+  "settings.character.subtitle": "Exportez votre fiche pour ne jamais la perdre, même si le cache est effacé.",
+  "settings.character.exportLabel": "Exporter",
+  "settings.character.exportDesc": "Télécharge un fichier <code>.json</code> avec toute votre fiche.",
+  "settings.character.exportButton": "📥 Exporter",
+  "settings.character.importLabel": "Importer",
+  "settings.character.importDesc": "Charge une fiche depuis un fichier <code>.json</code> exporté précédemment.",
+  "settings.character.importButton": "📤 Importer",
+  "settings.session.title": "Verrouillage de session",
+  "settings.session.subtitle": "Surveille les caractéristiques de base et l'intégrité des jets.",
+
+  // ── Dice builder ─────────────────────────────────────────────────────────────
+  "dice.removeAriaLabel": "Enlever un d{sides}",
+  "dice.addAriaLabel": "Ajouter un d{sides}",
+  "dice.none": "Aucun dé sélectionné",
+  "dice.reset": "Réinitialiser",
+  "dice.roll": "🎲 Lancer",
+  "dice.freeDie": "d{sides} libre",
+
+  // ── Attack cards ─────────────────────────────────────────────────────────────
+  "attack.hitButton": "Toucher",
+  "attack.damageButton": "Dégâts",
+  "attack.deleteButton": "Supprimer",
+  "attack.emptyState": "Aucune attaque. Ajoutez-en une depuis la fiche personnage.",
+
+  // ── Last action card ──────────────────────────────────────────────────────────
+  "lastAction.empty": "Aucune action récente.",
+  "lastAction.spellLabel": "Sort",
+  "lastAction.rollLabel": "Jet",
+  "lastAction.rollDetails": "d20 : {rolls} • Bonus {bonus} • {mode}",
+
+  // ── Aria labels ───────────────────────────────────────────────────────────────
+  "aria.rollAbility": "Lancer {label} avec bonus {bonus}",
+  "aria.rollSkill": "Lancer {label} avec bonus {bonus}",
+  "aria.rollSave": "Lancer la sauvegarde de {label} avec bonus {bonus}",
+  "aria.testAbility": "Test {short}",
+
+  // ── Session lock summary ─────────────────────────────────────────────────────
+  "session.notLocked": "La session n'est pas encore verrouillée. Activez-la au début de la partie pour figer le niveau, les caractéristiques, les PV max, la CA et les maîtrises.",
+  "session.locked.desc": "Session verrouillée. Toute modification suspecte est restaurée puis signalée sur Discord.",
+  "session.stat.level": "Niveau surveillé : {value}",
+  "session.stat.hpMax": "PV max surveillés : {value}",
+  "session.stat.ac": "CA surveillée : {value}",
+  "session.stat.skills": "Compétences maîtrisées : {value}",
+  "session.stat.saves": "Sauvegardes maîtrisées : {value}",
+
+  // ── Remote roll popup ────────────────────────────────────────────────────────
+  "popup.rolling": "🎲 {name} — {label}\u2026",
+  "popup.result": "🎲 {name} — {label} \u2192 {total}",
+  "popup.critText": "Critique Naturel",
+  "popup.fumbleText": "Échec Critique",
+  "popup.defaultName": "Aventurier",
+  "popup.defaultLabel": "Jet",
+  "popup.defaultRollLabel": "Jet de dés",
+
+  // ── Roll labels (passed as performRoll `label`) ──────────────────────────────
+  "roll.abilityLabel": "Test {label}",
+  "roll.saveLabel": "Sauvegarde {label}",
+  "roll.hitLabel": "Toucher — {name}",
+  "roll.damageNote": "Dégâts : {damage}",
+  "roll.syncTestLabel": "Test de synchronisation",
+
+  // ── Status messages ──────────────────────────────────────────────────────────
+  "status.hpAdjusted": "PV ajustés à {current}/{max}.",
+  "status.characterSaved": "Fiche mise à jour et sauvegardée localement.",
+  "status.characterValueUpdated": "Valeur du personnage mise à jour.",
+  "status.hpUpdated": "PV actuels mis à jour.",
+  "status.skillsUpdated": "Maîtrises de compétences mises à jour.",
+  "status.savesUpdated": "Maîtrises de sauvegardes mises à jour.",
+  "status.abilityUpdated": "Caractéristique mise à jour.",
+  "status.attackAdded": "Attaque ajoutée à la fiche.",
+  "status.attackRemoved": "Attaque supprimée.",
+  "status.spellAdded": "Sort ajouté au grimoire.",
+  "status.spellRemoved": "Sort supprimé du grimoire.",
+  "status.spellAnnounced": "{name} annoncé sur Discord.{slotMsg}",
+  "status.slotMsg": " — emplacements niv. {level} restants : {remaining}",
+  "status.longRest": "Repos long : tous les emplacements de sorts ont été restaurés.",
+  "status.settingSaved": "Paramètre sauvegardé localement.",
+  "status.sessionLocked": "Session verrouillée : les statistiques de base sont surveillées.",
+  "status.sessionUnlocked": "Verrouillage de session désactivé.",
+  "status.discordTestSuccess": "🔔 Message de test envoyé sur Discord !",
+  "status.syncTestSuccess": "🔗 Jet de test publié ! Les autres joueurs dans la même session devraient le voir.",
+  "status.exportSuccess": "Fiche exportée avec succès.",
+  "status.importSuccess": "Personnage \"{name}\" importé avec succès.",
+  "status.appReset": "Application réinitialisée localement.",
+  "status.configuredFromUrl": "✅ Configuré depuis l'URL : {items}",
+  "status.rollMode": "Mode de jet : {mode}.",
+  "status.rollResult": "{label} → **{total}**{suffix}",
+  "status.rollCriticalSuffix": " 💥 Critique !",
+  "status.rollFumbleSuffix": " 💀 Échec critique",
+  "status.damageResult": "Dégâts {name} → {total}",
+  "status.discordFailed": "Connexion Discord échouée : {error}",
+  "status.syncNotConfigured": "Configurez l'URL Firebase et le nom de la session d'abord.",
+  "status.syncFailed": "Échec de la sync : {error}",
+  "status.integrityRestored": "Modification verrouillée détectée. Les valeurs surveillées ont été restaurées.",
+  "status.integrityAlertSent": "Alerte anti-triche envoyée au MJ.",
+  "status.integrityAlertFailed": "Alerte détectée, mais Discord a échoué : {error}",
+
+  // ── Config-from-URL item labels ───────────────────────────────────────────────
+  "config.webhook": "Webhook Discord",
+  "config.firebase": "Firebase",
+  "config.room": "Salon \"{name}\"",
+
+  // ── Error messages ───────────────────────────────────────────────────────────
+  "error.attackNotFound": "L'attaque demandée est introuvable.",
+  "error.damageNotRecognized": "Dégâts de \"{name}\" non reconnus. Utilisez un format comme \"1d8+3\".",
+  "error.attackNameRequired": "Le nom de l'attaque est obligatoire.",
+  "error.spellNotFound": "Le sort demandé est introuvable.",
+  "error.notEnoughSlots": "Plus assez d'emplacements niv. {level} (disponibles : {available}/{max}, coût : {cost}).",
+  "error.spellNameRequired": "Le nom du sort est obligatoire.",
+  "error.importInvalidFile": "Ce fichier n'est pas une fiche Compagnon D&D valide.",
+  "error.importFailed": "Importation échouée : {error}",
+
+  // ── Confirm dialogs ──────────────────────────────────────────────────────────
+  "confirm.import": "Importer le personnage :\n\n\u00ab {name} \u00bb \u2014 {class} niveau {level}\n\nCela remplacera votre fiche actuelle. Vos réglages Discord seront conservés.",
+  "confirm.reset": "Réinitialiser la fiche, les sorts, les attaques et les réglages locaux ?",
+
+  // ── History entries ──────────────────────────────────────────────────────────
+  "history.antiCheatAlert": "Alerte anti-triche détectée et état restauré.",
+  "history.spellCast": "{name} lance {spell} (Niveau {level}).",
+  "history.rollResult": "{name} : {label} \u2192 {total} ({breakdown})",
+  "history.freeRoll": "{name} lance {notation} : {total} [{details}]",
+  "history.singleDie": "{name} lance {label} : {result}",
+  "history.damage": "Dégâts {spell} : {total} [{breakdown}]",
+
+  // ── Integrity check ──────────────────────────────────────────────────────────
+  "integrity.d20Label": "Intégrité du d20",
+  "integrity.d20Expected": "Valeur 1 à 20",
+};
