@@ -41,6 +41,10 @@ export function renderParty() {
   const panel = document.getElementById("party-panel");
   if (!panel) return;
 
+  const inRoom = !!(state.settings.firebaseUrl?.trim() && state.settings.syncRoom?.trim());
+  panel.hidden = !inRoom;
+  if (!inRoom) return;
+
   const self = {
     sid      : SESSION_ID,
     name     : state.character.name,
