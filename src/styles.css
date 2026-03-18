@@ -2785,6 +2785,9 @@ h3 {
    ═══════════════════════════════════════════════════════════════════════════════ */
 
 /* ── Fixed right panel ───────────────────────────────────────────────────────── */
+/* Garantit que display:flex ne surpasse pas l'attribut hidden */
+.combat-tracker-panel[hidden] { display: none; }
+
 .combat-tracker-panel {
   position: fixed;
   right: 12px;
