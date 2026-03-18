@@ -198,6 +198,17 @@ This works because `bindEvents` uses delegation on `appElement` (not on children
 
 ---
 
+## Documentation Rule
+
+**Always update `README.md` at the end of every feature implementation.**
+
+- Add new features to the relevant `## ✨ Features` sub-section (or create a new one)
+- Remove or correct any outdated behaviour descriptions
+- Update the **Project Structure** and **Architecture** sections if new files or layers were added
+- Update the **First Run** section if the user-facing setup flow changed
+- Update i18n key count if significantly changed
+- Commit the README update in the same PR/commit as the feature, or in an immediate follow-up commit
+
 ## Common Pitfalls
 
 1. **Circular imports**: `store.js` ↔ `renderer.js` — solved by `injectRender`. Never import renderer from store.

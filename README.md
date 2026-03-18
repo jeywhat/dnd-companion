@@ -55,9 +55,13 @@ No account required. No pay-to-play. Just open and roll.
 ### 🏰 Room System (Multiplayer)
 - **Create or Join a Room** — Game Master creates a room and shares a 6-character code; players join with that code
 - **Roles** — **Game Master** (GM) and **Players** have distinct interfaces and permissions
+- **Stable Identity** — Each browser is assigned a permanent `PLAYER_ID` (UUID in `localStorage`); page refreshes and character name changes never create duplicate entries
 - **Party Panel** *(left side, fixed)* — Real-time list of all connected members with avatar, class, level, and HP bar
   - GM card highlighted in gold with a crown 👑; no stats exposed
   - Player cards show HP bar, class, and level
+- **Presence Indicators** — 🟢 green dot = online (heartbeat < 90s), 🔴 red dot + grayed card = disconnected
+- **Heartbeat** — Each player publishes a keep-alive every 30 seconds; the party panel refreshes presence dots automatically
+- **Auto-cleanup** — Entries not updated for 5+ minutes are automatically removed from Firebase (triggered by GM heartbeat and on room join)
 - **Kick & Ban** — GM can temporarily kick a player (can rejoin with code) or permanently ban them
 - **Auto-disconnect** — Players are notified and disconnected if the GM dissolves the room or the GM kicks/bans them
 
@@ -65,6 +69,7 @@ No account required. No pay-to-play. Just open and roll.
 - **Roll Broadcasting** — Every d20 roll appears on all connected screens the moment it's thrown
 - **Animated Remote Popups** — Slot-machine number animation in SVG die shapes, stacked per player
 - **Party State Sync** — HP, avatar, class, and level synced in real time to the party panel
+- **Presence Heartbeat** — 30-second keep-alive publishes keep `updatedAt` fresh; presence dots reflect live connection status
 - **Auto-reconnect** — Seamlessly reconnects if Firebase connection drops
 
 ### ⚔️ Initiative Tracker (GM)
