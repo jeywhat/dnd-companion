@@ -65,6 +65,10 @@ export function getAppTemplate() {
           <span class="nav-icon" aria-hidden="true">📜</span>
           <span class="nav-label">${t("nav.character")}</span>
         </button>
+        <button type="button" class="nav-button" data-action="switch-tab" data-tab="room">
+          <span class="nav-icon" aria-hidden="true">🏰</span>
+          <span class="nav-label">${t("nav.room")}</span>
+        </button>
         <button type="button" class="nav-button" data-action="switch-tab" data-tab="settings">
           <span class="nav-icon" aria-hidden="true">⚙️</span>
           <span class="nav-label">${t("nav.settings")}</span>
@@ -426,6 +430,12 @@ export function getAppTemplate() {
               </form>
               <div class="stack-list" data-spell-list></div>
             </article>
+          </section>
+
+          <section class="panel" data-panel="room" hidden>
+            <section class="stack-form" aria-label="${t("room.section.ariaLabel")}">
+              <div data-room-panel></div>
+            </section>
           </section>
 
           <section class="panel" data-panel="settings" hidden>

@@ -81,6 +81,7 @@ export function createDefaultState() {
       }
     },
     settings: { webhookUrl: "", firebaseUrl: "", syncRoom: "", diceColor: "#7c3aed" },
+    room: { role: null, name: "", code: "", gmSid: "" },
     sessionLock: {
       isLocked: false,
       baseline: null

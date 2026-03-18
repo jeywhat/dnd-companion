@@ -11,20 +11,22 @@ function hpBarClass(current, max) {
 }
 
 function buildMemberCard(member, isSelf) {
-  const hpPct  = member.hpMax > 0 ? Math.round((member.currentHp / member.hpMax) * 100) : 0;
-  const name   = member.name      || t("app.defaultCharName");
-  const cls    = member.className || t("app.defaultClass");
-  const color  = escapeHtml(member.diceColor || "#8b5cf6");
+  const hpPct   = member.hpMax > 0 ? Math.round((member.currentHp / member.hpMax) * 100) : 0;
+  const name    = member.name      || t("app.defaultCharName");
+  const cls     = member.className || t("app.defaultClass");
+  const color   = escapeHtml(member.diceColor || "#8b5cf6");
   const initial = escapeHtml(name.charAt(0).toUpperCase());
+  const isGm    = member.role === "gm";
 
   const avatarHtml = member.avatar
     ? `<img class="party-avatar" src="${escapeHtml(member.avatar)}" alt="${escapeHtml(name)}" loading="lazy">`
     : `<div class="party-avatar party-avatar--initial" style="--pcolor:${color}">${initial}</div>`;
 
-  return `<li class="party-card${isSelf ? " party-card--self" : ""}">
+  return `<li class="party-card${isSelf ? " party-card--self" : ""}${isGm ? " party-card--gm" : ""}">
     ${avatarHtml}
     <div class="party-info">
       <span class="party-name" title="${escapeHtml(name)}">${escapeHtml(name)}</span>
+      ${isGm ? `<span class="party-gm-badge">${t("room.active.gmBadge")}</span>` : ""}
       <span class="party-class">${escapeHtml(cls)} · ${member.level}</span>
       <div class="party-hp-track">
         <div class="party-hp-bar ${hpBarClass(member.currentHp, member.hpMax)}"

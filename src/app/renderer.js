@@ -4,6 +4,7 @@ import { renderSpells, renderSpellSlots } from "../features/grimoire/renderer.js
 import { renderFormValues } from "../features/character/renderer.js";
 import { renderSessionSummary } from "../features/settings/renderer.js";
 import { renderParty } from "../features/party/renderer.js";
+import { renderRoom } from "../features/room/renderer.js";
 
 export function render(syncInputs = true) {
   renderAbilityDashboard();
@@ -16,4 +17,5 @@ export function render(syncInputs = true) {
   renderSessionSummary();
   renderFormValues(syncInputs);
   renderParty();
+  renderRoom();
 }

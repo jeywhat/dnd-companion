@@ -60,6 +60,7 @@ export function queuePartySync() {
         hpMax    : state.character.hpMax,
         avatar   : state.character.avatar || "",
         diceColor: state.settings.diceColor,
+        role     : state.room?.role || null,
       },
     });
   }, 600);

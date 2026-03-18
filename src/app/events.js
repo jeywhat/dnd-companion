@@ -7,6 +7,7 @@ import { handleRollsAction, handleRollsChange } from "../features/rolls/handler.
 import { handleGrimoireAction, handleGrimoireSubmit } from "../features/grimoire/handler.js";
 import { handleCharacterInput, handleCharacterChange, handleCharacterSubmit, handleCharacterAction } from "../features/character/handler.js";
 import { handleSettingsAction, handleSettingsInput } from "../features/settings/handler.js";
+import { handleRoomAction } from "../features/room/handler.js";
 
 function switchTab(tab) {
   if (tab === state.ui.activeTab) return;
@@ -26,6 +27,7 @@ const ACTION_HANDLERS = [
   handleRollsAction,
   handleGrimoireAction,
   handleCharacterAction,
+  handleRoomAction,
   handleSettingsAction,
 ];
 

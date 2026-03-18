@@ -102,6 +102,14 @@ export function sanitiseState(rawState) {
       ? rawSettings.diceColor : "#7c3aed",
   };
 
+  const rawRoom = rawState.room ?? {};
+  nextState.room = {
+    role : ["gm", "player"].includes(rawRoom.role) ? rawRoom.role : null,
+    name : typeof rawRoom.name  === "string" ? rawRoom.name.trim()               : "",
+    code : typeof rawRoom.code  === "string" ? rawRoom.code.trim().toUpperCase() : "",
+    gmSid: typeof rawRoom.gmSid === "string" ? rawRoom.gmSid.trim()              : "",
+  };
+
   nextState.sessionLock.isLocked = Boolean(rawSessionLock.isLocked);
   nextState.sessionLock.baseline =
     rawSessionLock.baseline && typeof rawSessionLock.baseline === "object"

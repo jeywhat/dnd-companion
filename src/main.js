@@ -3,6 +3,7 @@ import { render } from "./app/renderer.js";
 import { getAppTemplate } from "./app/shell.js";
 import { bindEvents } from "./app/events.js";
 import { applyWebhookFromUrl, reconnectSync } from "./features/settings/handler.js";
+import { reconnectRoom } from "./features/room/handler.js";
 import { preloadDiceBox } from "./adapters/dice-animation.js";
 
 const appElement = document.querySelector("#app");
@@ -19,6 +20,7 @@ applyWebhookFromUrl();
 bindEvents(appElement);
 render(true);
 reconnectSync();
+reconnectRoom();
 preloadDiceBox();
 
 const { flush } = getCleanupHandlers();

@@ -17,7 +17,7 @@ let _onRoll           = null;
 let _partyEventSource = null;
 let _onPartyUpdate    = null;
 
-function buildBase(firebaseUrl, roomId) {
+export function buildBase(firebaseUrl, roomId) {
   const base = firebaseUrl.replace(/\/$/, "");
   const room = encodeURIComponent(roomId.trim().toLowerCase().replace(/\s+/g, "-"));
   return `${base}/rooms/${room}`;
