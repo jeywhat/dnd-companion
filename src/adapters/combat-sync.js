@@ -48,6 +48,16 @@ export function stopCombatListener() {
   _onUpdate = null;
 }
 
+export async function putCombatRoot({ firebaseUrl, code, data }) {
+  const url = `${buildCombatBase(firebaseUrl, code)}.json`;
+  const res = await fetch(url, {
+    method : "PUT",
+    headers: { "Content-Type": "application/json" },
+    body   : JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(`Firebase error ${res.status}`);
+}
+
 export async function patchCombatRoot({ firebaseUrl, code, data }) {
   const url = `${buildCombatBase(firebaseUrl, code)}.json`;
   const res = await fetch(url, {

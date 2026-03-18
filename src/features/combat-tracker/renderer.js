@@ -26,10 +26,13 @@ function renderCombatTrackerPanel() {
   const inRoom = !!(state.room?.role && state.room?.code);
   const active = state.combat.state !== "idle";
 
-  panel.hidden = !(inRoom && active);
-  if (!inRoom || !active) return;
+  const isGm      = state.room.role === "gm";
+  // Joueurs : respectent panelVisible ; le MJ voit toujours le panneau
+  const shouldShow = isGm || state.combat.panelVisible;
 
-  const isGm       = state.room.role === "gm";
+  panel.hidden = !(inRoom && active && shouldShow);
+  if (!inRoom || !active || !shouldShow) return;
+
   const sorted     = getSortedInitiatives();
   const { currentTurn, round } = state.combat;
 
@@ -280,6 +283,18 @@ function renderCombatGmTab() {
     <section class="panel-content" aria-label="${t("combatTracker.section.ariaLabel")}">
       ${mainHtml}
       ${addMonsterHtml}
+      ${combatState !== "idle" ? `
+      <article class="card" style="margin-top:0.75rem">
+        <div class="section-heading">
+          <h3 style="font-size:0.85rem">${t("combatTracker.panelVisibility")}</h3>
+        </div>
+        <button type="button"
+          class="${state.combat.panelVisible ? "primary-action" : "danger-button"}"
+          data-action="toggle-panel-visibility"
+          style="width:100%;margin-top:0.4rem">
+          ${state.combat.panelVisible ? t("combatTracker.hidePanel") : t("combatTracker.showPanel")}
+        </button>
+      </article>` : ""}
     </section>`;
 }
 

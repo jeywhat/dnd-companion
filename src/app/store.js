@@ -25,7 +25,7 @@ export function initStore(container) {
   appElement = container;
   state = loadState();
   state.party  = {}; // runtime-only, not persisted
-  state.combat = { state: "idle", currentTurn: 0, round: 1, initiatives: {}, _modalRoll: null };
+  state.combat = { state: "idle", currentTurn: 0, round: 1, initiatives: {}, panelVisible: true, _modalRoll: null };
 }
 
 export function getCharacterName() {

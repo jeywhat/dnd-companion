@@ -373,6 +373,9 @@ export const en = {
   "combatTracker.panel.round"        : "Rd. {n}",
   "combatTracker.panel.noInitiative" : "Waiting…",
   "combatTracker.removeMonster"      : "Remove",
+  "combatTracker.panelVisibility"    : "Player Timeline",
+  "combatTracker.showPanel"          : "👁️ Show to players",
+  "combatTracker.hidePanel"          : "🙈 Hide from players",
   // ── Player initiative modal ──────────────────────────────────────────────────
   "initiative.modal.title"     : "🎲 Roll Initiative!",
   "initiative.modal.desc"      : "The Game Master triggered initiative. Roll your die!",

@@ -373,6 +373,9 @@ export const fr = {
   "combatTracker.panel.round"        : "Rd. {n}",
   "combatTracker.panel.noInitiative" : "En attente…",
   "combatTracker.removeMonster"      : "Retirer",
+  "combatTracker.panelVisibility"    : "Timeline joueurs",
+  "combatTracker.showPanel"          : "👁️ Afficher aux joueurs",
+  "combatTracker.hidePanel"          : "🙈 Masquer aux joueurs",
   // ── Modale initiative joueur ─────────────────────────────────────────────────
   "initiative.modal.title"     : "🎲 Lancer l'Initiative !",
   "initiative.modal.desc"      : "Le Maître du Jeu a déclenché l'initiative. Lancez votre dé !",

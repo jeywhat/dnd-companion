@@ -4,12 +4,13 @@ import {
   listenCombat,
   stopCombatListener,
   patchCombatRoot,
+  putCombatRoot,
   putInitiative,
   deleteInitiative,
   deleteCombat,
 } from "../../adapters/combat-sync.js";
 import { calculateModifier } from "../../core/character.js";
-import { rollDie } from "../../core/dice.js";
+import { performRoll } from "../rolls/engine.js";
 import { t } from "../../shared/i18n.js";
 
 // ─── SSE update handler ───────────────────────────────────────────────────────
@@ -21,12 +22,14 @@ function onCombatUpdate(path, data) {
       state.combat.currentTurn  = 0;
       state.combat.round        = 1;
       state.combat.initiatives  = {};
+      state.combat.panelVisible = true;
       state.combat._modalRoll   = null;
     } else if (typeof data === "object") {
-      state.combat.state        = data.state       ?? "idle";
-      state.combat.currentTurn  = data.currentTurn ?? 0;
-      state.combat.round        = data.round       ?? 1;
-      state.combat.initiatives  = data.initiatives ?? {};
+      state.combat.state        = data.state        ?? "idle";
+      state.combat.currentTurn  = data.currentTurn  ?? 0;
+      state.combat.round        = data.round        ?? 1;
+      state.combat.initiatives  = data.initiatives  ?? {};
+      state.combat.panelVisible = data.panelVisible !== false;
       if (data.state === "idle") state.combat._modalRoll = null;
     }
   } else if (path === "/state") {
@@ -41,6 +44,8 @@ function onCombatUpdate(path, data) {
     state.combat.currentTurn = data ?? 0;
   } else if (path === "/round") {
     state.combat.round = data ?? 1;
+  } else if (path === "/panelVisible") {
+    state.combat.panelVisible = data !== false;
   } else if (path === "/initiatives" && typeof data === "object" && data !== null) {
     state.combat.initiatives = data;
   } else if (path.startsWith("/initiatives/")) {
@@ -67,6 +72,7 @@ export function disconnectCombat() {
   state.combat.currentTurn  = 0;
   state.combat.round        = 1;
   state.combat.initiatives  = {};
+  state.combat.panelVisible = true;
   state.combat._modalRoll   = null;
   triggerRender(false);
 }
@@ -89,11 +95,13 @@ export async function handleCombatTrackerAction(button) {
   if (action === "trigger-initiative") {
     if (!firebaseUrl || !code) { setStatus("error", t("error.notInRoom")); return true; }
     try {
-      await patchCombatRoot({ firebaseUrl, code, data: {
+      // PUT (full replace) pour garantir un reset propre des initiatives
+      await putCombatRoot({ firebaseUrl, code, data: {
         state       : "rolling",
         currentTurn : 0,
         round       : 1,
         initiatives : {},
+        panelVisible: true,
       }});
       setStatus("success", t("status.initiativeTriggered"));
     } catch (err) {
@@ -170,11 +178,31 @@ export async function handleCombatTrackerAction(button) {
     return true;
   }
 
+  if (action === "toggle-panel-visibility") {
+    const newVal = !state.combat.panelVisible;
+    try {
+      await patchCombatRoot({ firebaseUrl, code, data: { panelVisible: newVal } });
+    } catch (err) {
+      setStatus("error", err.message);
+    }
+    return true;
+  }
+
   if (action === "roll-initiative-dice") {
     const dexMod = calculateModifier(state.character.abilities?.dexterity ?? 10);
-    const d20    = rollDie(20);
-    state.combat._modalRoll = { d20, total: d20 + dexMod };
-    triggerRender(false);
+    try {
+      await performRoll({
+        label: t("dashboard.initiative.label"),
+        bonus: dexMod,
+        note : t("ability.dexterity.short"),
+      });
+      // performRoll stocke le résultat dans state.ui.lastRoll
+      state.combat._modalRoll = {
+        d20  : state.ui.lastRoll.baseRoll,
+        total: state.ui.lastRoll.total,
+      };
+      triggerRender(false);
+    } catch { /* animation dismissée ou erreur */ }
     return true;
   }
 
