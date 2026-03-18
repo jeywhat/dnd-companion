@@ -2,11 +2,11 @@ import { state, triggerRender } from "../../app/store.js";
 import {
   connectPartySync as _connect,
   disconnectPartySync as _disconnect,
-  SESSION_ID,
+  PLAYER_ID,
 } from "../../adapters/firebase-sync.js";
 
 function onPartyUpdate(sid, member) {
-  if (sid === SESSION_ID) return;
+  if (sid === PLAYER_ID) return;
 
   if (!member || typeof member !== "object") {
     for (const [key, val] of Object.entries(state.party)) {

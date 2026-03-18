@@ -1,6 +1,6 @@
 import { state, setStatus, commit, getCharacterName } from "../../app/store.js";
 import { saveState } from "../../adapters/storage.js";
-import { SESSION_ID } from "../../adapters/firebase-sync.js";
+import { PLAYER_ID } from "../../adapters/firebase-sync.js";
 import {
   generateRoomCode,
   createRoom,
@@ -9,6 +9,7 @@ import {
   kickMember,
   deleteKick,
   removePartyMember,
+  cleanupStalePartyMembers,
   listenForKick,
   stopKickListener,
   listenRoomMeta,
@@ -40,7 +41,7 @@ export function clearRoom() {
   const { firebaseUrl } = state.settings;
   const code = state.room.code;
   if (firebaseUrl && code) {
-    removePartyMember({ firebaseUrl, code, sid: SESSION_ID }).catch(() => {});
+    removePartyMember({ firebaseUrl, code, sid: PLAYER_ID }).catch(() => {});
   }
 
   state.room.role  = null;
@@ -63,7 +64,7 @@ function startListeners(role, code) {
   listenForKick({
     firebaseUrl: state.settings.firebaseUrl,
     code,
-    sid : SESSION_ID,
+    sid : PLAYER_ID,
     onKick: () => {
       setStatus("alert", t("status.roomKicked"));
       clearRoom();
@@ -85,6 +86,7 @@ export function reconnectRoom() {
   if (!state.room?.role || !state.room?.code) return;
   startListeners(state.room.role, state.room.code);
   connectCombat({ firebaseUrl: state.settings.firebaseUrl, roomId: state.room.code });
+  cleanupStalePartyMembers({ firebaseUrl: state.settings.firebaseUrl, code: state.room.code }).catch(() => {});
 }
 
 // ─── Action handler ───────────────────────────────────────────────────────────
@@ -107,10 +109,10 @@ export async function handleRoomAction(button) {
         firebaseUrl: state.settings.firebaseUrl,
         code,
         name,
-        gmSid : SESSION_ID,
+        gmSid : PLAYER_ID,
         gmName: getCharacterName(),
       });
-      applyRoom({ role: "gm", name, code, gmSid: SESSION_ID });
+      applyRoom({ role: "gm", name, code, gmSid: PLAYER_ID });
       setStatus("success", t("status.roomCreated", { name, code }));
       commit(false);
     } catch (err) {
@@ -137,6 +139,7 @@ export async function handleRoomAction(button) {
       }
       applyRoom({ role: "player", name: meta.name, code, gmSid: meta.gmSid || "" });
       startListeners("player", code);
+      cleanupStalePartyMembers({ firebaseUrl: state.settings.firebaseUrl, code }).catch(() => {});
       setStatus("success", t("status.roomJoined", { name: meta.name }));
       commit(false);
     } catch {
@@ -152,7 +155,7 @@ export async function handleRoomAction(button) {
       await removePartyMember({
         firebaseUrl: state.settings.firebaseUrl,
         code: state.room.code,
-        sid : SESSION_ID,
+        sid : PLAYER_ID,
       });
     } catch { /* best effort */ }
     setStatus("info", t("status.roomLeft"));
@@ -164,7 +167,7 @@ export async function handleRoomAction(button) {
     if (!window.confirm(t("confirm.dissolveRoom", { name: state.room.name }))) return true;
     try {
       await deleteRoomMeta({ firebaseUrl: state.settings.firebaseUrl, code: state.room.code });
-      await removePartyMember({ firebaseUrl: state.settings.firebaseUrl, code: state.room.code, sid: SESSION_ID });
+      await removePartyMember({ firebaseUrl: state.settings.firebaseUrl, code: state.room.code, sid: PLAYER_ID });
     } catch { /* best effort */ }
     setStatus("info", t("status.roomDissolved"));
     clearRoom();

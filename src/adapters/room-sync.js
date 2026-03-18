@@ -50,6 +50,25 @@ export async function removePartyMember({ firebaseUrl, code, sid }) {
   await fetch(url, { method: "DELETE" }).catch(() => {});
 }
 
+export async function cleanupStalePartyMembers({ firebaseUrl, code, maxAgeMs = 120_000 }) {
+  try {
+    const url = `${buildBase(firebaseUrl, code)}/party.json`;
+    const res = await fetch(url);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data || typeof data !== "object") return;
+    const now = Date.now();
+    const stale = Object.entries(data)
+      .filter(([, m]) => !m?.updatedAt || (now - m.updatedAt) > maxAgeMs)
+      .map(([sid]) => sid);
+    if (stale.length === 0) return;
+    await Promise.all(stale.map(sid => removePartyMember({ firebaseUrl, code, sid })));
+    console.info(`[RoomSync] 🧹 ${stale.length} membre(s) périmé(s) supprimé(s)`);
+  } catch (err) {
+    console.warn("[RoomSync] Cleanup stale members error:", err);
+  }
+}
+
 // ─── Kick listener (player only) ─────────────────────────────────────────────
 
 export function listenForKick({ firebaseUrl, code, sid, onKick }) {

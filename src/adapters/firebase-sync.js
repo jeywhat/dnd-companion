@@ -12,6 +12,21 @@
 
 export const SESSION_ID = Math.random().toString(36).slice(2, 10);
 
+// PLAYER_ID : identifiant stable persisté en localStorage.
+// Contrairement à SESSION_ID (ephémère, pour déduplication des rolls),
+// PLAYER_ID identifie le joueur de façon permanente dans la party Firebase.
+const _PID_KEY = "dnd-companion-player-id";
+export const PLAYER_ID = (() => {
+  let id = localStorage.getItem(_PID_KEY);
+  if (!id) {
+    id = (typeof crypto !== "undefined" && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : Math.random().toString(36).slice(2, 18);
+    localStorage.setItem(_PID_KEY, id);
+  }
+  return id;
+})();
+
 let _eventSource      = null;
 let _onRoll           = null;
 let _partyEventSource = null;
@@ -137,8 +152,8 @@ export function disconnectPartySync() {
 export async function publishParty({ firebaseUrl, roomId, member }) {
   if (!firebaseUrl?.startsWith("https://") || !roomId?.trim()) return;
 
-  const url = `${buildPartyBase(firebaseUrl, roomId)}/${SESSION_ID}.json`;
-  const body = JSON.stringify({ ...member, sid: SESSION_ID, updatedAt: Date.now() });
+  const url = `${buildPartyBase(firebaseUrl, roomId)}/${PLAYER_ID}.json`;
+  const body = JSON.stringify({ ...member, sid: PLAYER_ID, updatedAt: Date.now() });
 
   await fetch(url, {
     method : "PUT",
