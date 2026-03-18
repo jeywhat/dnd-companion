@@ -7,6 +7,7 @@ import {
   fetchRoomMeta,
   deleteRoomMeta,
   kickMember,
+  deleteKick,
   removePartyMember,
   listenForKick,
   stopKickListener,
@@ -170,12 +171,31 @@ export async function handleRoomAction(button) {
     const { sid, name } = button.dataset;
     if (!window.confirm(t("confirm.kickMember", { name }))) return true;
     try {
-      // Supprimer l'entrée party AVANT d'écrire le kick,
-      // pour que les autres clients voient la disparition immédiatement
-      // même si le joueur expulsé ne reçoit jamais son SSE de kick.
+      // Supprimer l'entrée party immédiatement (visible par tous)
+      await removePartyMember({ firebaseUrl: state.settings.firebaseUrl, code: state.room.code, sid });
+      // Écrire le kick pour que le joueur reçoive le signal SSE
+      await kickMember({ firebaseUrl: state.settings.firebaseUrl, code: state.room.code, sid });
+      // Supprimer le kick après 5s → le joueur peut revenir avec le code
+      window.setTimeout(() => {
+        deleteKick({ firebaseUrl: state.settings.firebaseUrl, code: state.room.code, sid }).catch(() => {});
+      }, 5000);
+      setStatus("success", t("status.memberKicked", { name }));
+      commit(false);
+    } catch (err) {
+      setStatus("error", err.message);
+      commit(false);
+    }
+    return true;
+  }
+
+  if (action === "ban-member") {
+    const { sid, name } = button.dataset;
+    if (!window.confirm(t("confirm.banMember", { name }))) return true;
+    try {
       await removePartyMember({ firebaseUrl: state.settings.firebaseUrl, code: state.room.code, sid });
       await kickMember({ firebaseUrl: state.settings.firebaseUrl, code: state.room.code, sid });
-      setStatus("success", t("status.memberKicked", { name }));
+      // Pas de suppression du kick → entrée permanente → joueur banni
+      setStatus("success", t("status.memberBanned", { name }));
       commit(false);
     } catch (err) {
       setStatus("error", err.message);

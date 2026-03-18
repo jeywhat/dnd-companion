@@ -2362,7 +2362,11 @@ h3 {
   flex-shrink: 0;
 }
 
+.room-kick-btn + .room-kick-btn { margin-left: 0; }
+
 .room-kick-btn:hover { opacity: 1; transform: none; }
+
+.room-ban-btn:hover { opacity: 1; transform: none; filter: hue-rotate(0deg); }
 
 /* Party side panel — GM badge */
 .party-card--gm { border-color: rgba(251, 191, 36, 0.3); }

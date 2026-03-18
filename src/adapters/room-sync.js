@@ -40,6 +40,11 @@ export async function kickMember({ firebaseUrl, code, sid }) {
   });
 }
 
+export async function deleteKick({ firebaseUrl, code, sid }) {
+  const url = `${buildBase(firebaseUrl, code)}/_kicks/${sid}.json`;
+  await fetch(url, { method: "DELETE" }).catch(() => {});
+}
+
 export async function removePartyMember({ firebaseUrl, code, sid }) {
   const url = `${buildBase(firebaseUrl, code)}/party/${sid}.json`;
   await fetch(url, { method: "DELETE" }).catch(() => {});

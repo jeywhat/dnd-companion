@@ -26,11 +26,15 @@ function buildMemberCard(member, { isSelf, isGm, canKick }) {
     isSelf ? `<span class="room-badge room-badge--you">${t("room.active.youBadge")}</span>` : "",
   ].join("");
 
-  const kickBtn = canKick
+  const actionBtns = canKick
     ? `<button type="button" class="room-kick-btn" data-action="kick-member"
          data-sid="${escapeHtml(member.sid || "")}"
          data-name="${escapeHtml(name)}"
-         title="${t("room.kick")}">👢</button>`
+         title="${t("room.kick")}">👢</button>
+       <button type="button" class="room-kick-btn room-ban-btn" data-action="ban-member"
+         data-sid="${escapeHtml(member.sid || "")}"
+         data-name="${escapeHtml(name)}"
+         title="${t("room.ban")}">🔨</button>`
     : "";
 
   return `<li class="room-member-card">
@@ -39,7 +43,7 @@ function buildMemberCard(member, { isSelf, isGm, canKick }) {
       <div class="room-member-name-row">
         <span class="room-member-name" title="${escapeHtml(name)}">${escapeHtml(name)}</span>
         ${badges}
-        ${kickBtn}
+        ${actionBtns}
       </div>
       <span class="room-member-class">${escapeHtml(cls)} · ${t("character.level.label")} ${member.level}</span>
       <div class="party-hp-track">
