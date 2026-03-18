@@ -1341,7 +1341,7 @@ h3 {
 #dice-box {
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: 10001;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.25s ease;
@@ -3011,6 +3011,12 @@ h3 {
   position: fixed;
   inset: 0;
   z-index: 10000;
+}
+
+/* Quand les dés 3D sont actifs (z-index 10001), la modale laisse passer les clics */
+#dice-box.dice-box--active ~ [data-initiative-modal] .initiative-modal-backdrop,
+body:has(#dice-box.dice-box--active) [data-initiative-modal] .initiative-modal-backdrop {
+  pointer-events: none;
 }
 
 .initiative-modal-backdrop {

@@ -5,6 +5,7 @@ import {
   stopCombatListener,
   patchCombatRoot,
   putCombatRoot,
+  setPanelVisible,
   putInitiative,
   deleteInitiative,
   deleteCombat,
@@ -181,7 +182,7 @@ export async function handleCombatTrackerAction(button) {
   if (action === "toggle-panel-visibility") {
     const newVal = !state.combat.panelVisible;
     try {
-      await patchCombatRoot({ firebaseUrl, code, data: { panelVisible: newVal } });
+      await setPanelVisible({ firebaseUrl, code, visible: newVal });
     } catch (err) {
       setStatus("error", err.message);
     }
