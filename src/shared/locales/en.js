@@ -324,6 +324,7 @@ export const en = {
   "room.join.codePlaceholder": "e.g. X4K9MN",
   "room.join.button": "🚪 Join",
   "room.active.members": "Adventurers ({count})",
+  "room.noPlayers": "No adventurers yet…",
   "room.active.code": "Code:",
   "room.active.copyCode": "Copy code",
   "room.active.leave": "🚪 Leave",

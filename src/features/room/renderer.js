@@ -10,7 +10,30 @@ function hpBarClass(current, max) {
   return "party-hp-bar--full";
 }
 
-function buildMemberCard(member, { isSelf, isGm, canKick }) {
+function buildGmCard(member, isSelf) {
+  const name    = member.name || t("app.defaultCharName");
+  const color   = escapeHtml(member.diceColor || "#fbbf24");
+  const initial = escapeHtml(name.charAt(0).toUpperCase());
+
+  const avatarHtml = member.avatar
+    ? `<img class="room-gm-avatar" src="${escapeHtml(member.avatar)}" alt="${escapeHtml(name)}" loading="lazy">`
+    : `<div class="room-gm-avatar room-gm-avatar--initial" style="--pcolor:${color}">${initial}</div>`;
+
+  const selfBadge = isSelf
+    ? `<span class="room-badge room-badge--you">${t("room.active.youBadge")}</span>`
+    : "";
+
+  return `<div class="room-gm-card">
+    <div class="room-gm-crown">👑</div>
+    ${avatarHtml}
+    <div class="room-gm-info">
+      <span class="room-gm-role">${t("room.role.gm")}</span>
+      <span class="room-gm-name">${escapeHtml(name)} ${selfBadge}</span>
+    </div>
+  </div>`;
+}
+
+function buildPlayerCard(member, { isSelf, canKick }) {
   const hpPct   = member.hpMax > 0 ? Math.round((member.currentHp / member.hpMax) * 100) : 0;
   const name    = member.name      || t("app.defaultCharName");
   const cls     = member.className || t("app.defaultClass");
@@ -21,20 +44,21 @@ function buildMemberCard(member, { isSelf, isGm, canKick }) {
     ? `<img class="room-member-avatar" src="${escapeHtml(member.avatar)}" alt="${escapeHtml(name)}" loading="lazy">`
     : `<div class="room-member-avatar room-member-avatar--initial" style="--pcolor:${color}">${initial}</div>`;
 
-  const badges = [
-    isGm   ? `<span class="room-badge room-badge--gm">${t("room.active.gmBadge")}</span>` : "",
-    isSelf ? `<span class="room-badge room-badge--you">${t("room.active.youBadge")}</span>` : "",
-  ].join("");
+  const selfBadge = isSelf
+    ? `<span class="room-badge room-badge--you">${t("room.active.youBadge")}</span>`
+    : "";
 
   const actionBtns = canKick
-    ? `<button type="button" class="room-kick-btn" data-action="kick-member"
-         data-sid="${escapeHtml(member.sid || "")}"
-         data-name="${escapeHtml(name)}"
-         title="${t("room.kick")}">👢</button>
-       <button type="button" class="room-kick-btn room-ban-btn" data-action="ban-member"
-         data-sid="${escapeHtml(member.sid || "")}"
-         data-name="${escapeHtml(name)}"
-         title="${t("room.ban")}">🔨</button>`
+    ? `<div class="room-member-actions">
+         <button type="button" class="room-kick-btn" data-action="kick-member"
+           data-sid="${escapeHtml(member.sid || "")}"
+           data-name="${escapeHtml(name)}"
+           title="${t("room.kick")}">👢</button>
+         <button type="button" class="room-kick-btn room-ban-btn" data-action="ban-member"
+           data-sid="${escapeHtml(member.sid || "")}"
+           data-name="${escapeHtml(name)}"
+           title="${t("room.ban")}">🔨</button>
+       </div>`
     : "";
 
   return `<li class="room-member-card">
@@ -42,8 +66,7 @@ function buildMemberCard(member, { isSelf, isGm, canKick }) {
     <div class="room-member-info">
       <div class="room-member-name-row">
         <span class="room-member-name" title="${escapeHtml(name)}">${escapeHtml(name)}</span>
-        ${badges}
-        ${actionBtns}
+        ${selfBadge}
       </div>
       <span class="room-member-class">${escapeHtml(cls)} · ${t("character.level.label")} ${member.level}</span>
       <div class="party-hp-track">
@@ -52,6 +75,7 @@ function buildMemberCard(member, { isSelf, isGm, canKick }) {
       </div>
       <span class="party-hp-label">${member.currentHp}/${member.hpMax}</span>
     </div>
+    ${actionBtns}
   </li>`;
 }
 
@@ -127,22 +151,27 @@ function renderActiveRoom(container) {
     .filter(m => !ownName || (m.name || "").trim() !== ownName);
 
   const allMembers = [self, ...others];
-  const count = allMembers.length;
 
-  const membersHtml = allMembers.map(m => {
-    const memberIsGm  = m.role === "gm" || m.sid === state.room.gmSid;
-    const memberIsSelf = m.sid === SESSION_ID;
-    return buildMemberCard(m, {
-      isSelf: memberIsSelf,
-      isGm  : memberIsGm,
-      canKick: isGm && !memberIsSelf,
-    });
-  }).join("");
+  // Séparer MJ et joueurs
+  const gmMember      = allMembers.find(m => m.role === "gm" || m.sid === state.room.gmSid);
+  const playerMembers = allMembers.filter(m => m !== gmMember);
+  const playerCount   = playerMembers.length;
+
+  const gmHtml = gmMember
+    ? buildGmCard(gmMember, gmMember.sid === SESSION_ID)
+    : "";
+
+  const playersHtml = playerMembers.map(m =>
+    buildPlayerCard(m, {
+      isSelf  : m.sid === SESSION_ID,
+      canKick : isGm && m.sid !== SESSION_ID,
+    })
+  ).join("");
 
   const leaveAction = isGm ? "dissolve-room" : "leave-room";
-  const leaveLabel  = isGm ? t("room.dissolve")     : t("room.active.leave");
-  const roleLabel   = isGm ? t("room.role.gm")      : t("room.role.player");
-  const roleCls     = isGm ? "room-role-badge--gm"  : "room-role-badge--player";
+  const leaveLabel  = isGm ? t("room.dissolve")    : t("room.active.leave");
+  const roleLabel   = isGm ? t("room.role.gm")     : t("room.role.player");
+  const roleCls     = isGm ? "room-role-badge--gm" : "room-role-badge--player";
 
   container.innerHTML = `
     <article class="card room-active-header">
@@ -163,11 +192,15 @@ function renderActiveRoom(container) {
       </div>
     </article>
 
+    ${gmHtml ? `<section class="room-section">${gmHtml}</section>` : ""}
+
     <article class="card">
       <div class="section-heading">
-        <h3 class="room-members-title">${t("room.active.members", { count })}</h3>
+        <h3 class="room-members-title">${t("room.active.members", { count: playerCount })}</h3>
       </div>
-      <ul class="room-members-list">${membersHtml}</ul>
+      ${playerMembers.length
+        ? `<ul class="room-members-list">${playersHtml}</ul>`
+        : `<p class="room-no-players">${t("room.noPlayers")}</p>`}
     </article>`;
 }
 
