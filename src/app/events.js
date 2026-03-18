@@ -2,6 +2,7 @@ import { setStatus, commit, state, appElement } from "./store.js";
 import { render } from "./renderer.js";
 import { getAppTemplate } from "./shell.js";
 import { setLocale } from "../shared/i18n.js";
+import { handleCombatTrackerAction } from "../features/combat-tracker/handler.js";
 import { handleCombatAction } from "../features/combat/handler.js";
 import { handleRollsAction, handleRollsChange } from "../features/rolls/handler.js";
 import { handleGrimoireAction, handleGrimoireSubmit } from "../features/grimoire/handler.js";
@@ -23,6 +24,7 @@ function switchTab(tab) {
 }
 
 const ACTION_HANDLERS = [
+  handleCombatTrackerAction,
   handleCombatAction,
   handleRollsAction,
   handleGrimoireAction,

@@ -856,6 +856,10 @@ h3 {
   backdrop-filter: blur(24px);
 }
 
+.bottom-nav[data-gm-active="1"] {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
 .nav-button {
   display: flex;
   flex-direction: column;
@@ -2774,4 +2778,298 @@ h3 {
 @keyframes cssda-appear {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   COMBAT TRACKER — Right panel, GM tab, initiative modal
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Fixed right panel ───────────────────────────────────────────────────────── */
+.combat-tracker-panel {
+  position: fixed;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 900;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 160px;
+  background: var(--bg-elevated);
+  border: 1px solid rgba(165, 180, 252, 0.18);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(20px);
+}
+
+.ct-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.7rem;
+  background: rgba(139, 92, 246, 0.18);
+  border-bottom: 1px solid rgba(165, 180, 252, 0.14);
+}
+
+.ct-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--primary-strong);
+}
+
+.ct-round {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.ct-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.3rem 0;
+}
+
+.ct-entry {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.5rem;
+  transition: background 0.15s;
+}
+
+.ct-entry--current {
+  background: rgba(139, 92, 246, 0.18);
+  border-left: 2px solid var(--primary);
+}
+
+.ct-turn-arrow { color: var(--primary-strong); font-size: 0.65rem; flex-shrink: 0; }
+.ct-turn-spacer { width: 0.65rem; flex-shrink: 0; }
+
+.ct-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  font-size: 0;
+}
+
+.ct-avatar--monster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.ct-avatar--initial {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--pcolor, #8b5cf6) 25%, transparent);
+  border: 1px solid color-mix(in srgb, var(--pcolor, #8b5cf6) 45%, transparent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.ct-info {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.ct-name {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+}
+
+.ct-initiative {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--primary-strong);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.ct-empty {
+  padding: 0.5rem 0.7rem;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ── GM combat tab ───────────────────────────────────────────────────────────── */
+.ct-monster-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.ct-monster-form .field-input {
+  background: var(--bg-soft);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+  padding: 0.35rem 0.5rem;
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+.ct-gm-monster-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.4rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.ct-gm-monster-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+}
+
+.ct-gm-monster-name { flex: 1; font-weight: 600; }
+.ct-gm-monster-init { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.ct-gm-monster-hp   { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+.ct-gm-player-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.ct-gm-player-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.5rem;
+  background: var(--bg-soft);
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+}
+
+.ct-gm-player-init {
+  margin-left: auto;
+  font-weight: 700;
+  color: var(--primary-strong);
+}
+
+.ct-gm-timeline {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.ct-gm-timeline-item {
+  display: grid;
+  grid-template-columns: 1.2rem 1fr 2.5rem 4rem auto;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.5rem;
+  background: var(--bg-soft);
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  border: 1px solid transparent;
+}
+
+.ct-gm-timeline-item--current {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+.ct-gm-timeline-arrow { color: var(--primary-strong); font-weight: 700; }
+.ct-gm-timeline-name  { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ct-gm-timeline-init  { font-variant-numeric: tabular-nums; color: var(--primary-strong); font-weight: 700; text-align: right; }
+.ct-gm-timeline-hp    { font-variant-numeric: tabular-nums; color: var(--text-muted); font-size: 0.75rem; text-align: right; }
+
+/* ── Initiative modal (player) ───────────────────────────────────────────────── */
+[data-initiative-modal] {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+}
+
+.initiative-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(4, 6, 14, 0.88);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.initiative-modal-card {
+  background: var(--bg-elevated);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  border-radius: var(--radius-xl);
+  padding: 2rem 1.75rem;
+  width: 100%;
+  max-width: 360px;
+  text-align: center;
+  box-shadow:
+    0 0 40px rgba(139, 92, 246, 0.25),
+    var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.initiative-modal-card h2 {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0;
+}
+
+.initiative-modal-dex {
+  font-size: 0.9rem;
+  color: var(--primary-strong);
+  font-weight: 600;
+  margin: 0;
+}
+
+.initiative-modal-result {
+  font-size: 4rem;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--primary-strong);
+  text-shadow: 0 0 24px rgba(139, 92, 246, 0.5);
+  font-variant-numeric: tabular-nums;
+}
+
+.initiative-modal-breakdown {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* Responsive: push panel out of the way on narrow screens */
+@media (max-width: 500px) {
+  .combat-tracker-panel { display: none; }
 }

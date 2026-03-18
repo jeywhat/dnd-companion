@@ -15,6 +15,7 @@ import {
   stopMetaListener,
 } from "../../adapters/room-sync.js";
 import { reconnectSync } from "../settings/handler.js";
+import { connectCombat, disconnectCombat } from "../combat-tracker/handler.js";
 import { t } from "../../shared/i18n.js";
 
 // ─── Internal helpers ─────────────────────────────────────────────────────────
@@ -27,11 +28,13 @@ function applyRoom({ role, name, code, gmSid }) {
   state.settings.syncRoom = code;
   commit(true);
   reconnectSync();
+  connectCombat({ firebaseUrl: state.settings.firebaseUrl, roomId: code });
 }
 
 export function clearRoom() {
   stopKickListener();
   stopMetaListener();
+  disconnectCombat();
 
   // Supprimer notre entrée de party Firebase avant de vider l'état local
   const { firebaseUrl } = state.settings;
@@ -81,6 +84,7 @@ function startListeners(role, code) {
 export function reconnectRoom() {
   if (!state.room?.role || !state.room?.code) return;
   startListeners(state.room.role, state.room.code);
+  connectCombat({ firebaseUrl: state.settings.firebaseUrl, roomId: state.room.code });
 }
 
 // ─── Action handler ───────────────────────────────────────────────────────────

@@ -24,7 +24,8 @@ export function injectRender(fn) {
 export function initStore(container) {
   appElement = container;
   state = loadState();
-  state.party = {}; // runtime-only, not persisted
+  state.party  = {}; // runtime-only, not persisted
+  state.combat = { state: "idle", currentTurn: 0, round: 1, initiatives: {}, _modalRoll: null };
 }
 
 export function getCharacterName() {

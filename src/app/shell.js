@@ -73,6 +73,10 @@ export function getAppTemplate() {
           <span class="nav-icon" aria-hidden="true">⚙️</span>
           <span class="nav-label">${t("nav.settings")}</span>
         </button>
+        <button type="button" class="nav-button" data-action="switch-tab" data-tab="combat-gm" style="display:none">
+          <span class="nav-icon" aria-hidden="true">🗡️</span>
+          <span class="nav-label">${t("nav.combatGm")}</span>
+        </button>
       </nav>
 
       <main class="app-main">
@@ -551,12 +555,19 @@ export function getAppTemplate() {
               <div data-session-summary></div>
             </article>
           </section>
+
+          <section class="panel" data-panel="combat-gm" hidden>
+          </section>
         </section>
       </main>
       <p class="sr-only" data-live-region aria-live="assertive"></p>
       <aside id="party-panel" class="party-panel" aria-label="${t("party.ariaLabel")}">
         <ul class="party-list" data-party-list aria-label="${t("party.title")}"></ul>
       </aside>
+      <aside class="combat-tracker-panel" data-combat-tracker-panel hidden
+        aria-label="${t("combatTracker.panel.title")}">
+      </aside>
+      <div data-initiative-modal hidden></div>
     </div>
   `;
 }
