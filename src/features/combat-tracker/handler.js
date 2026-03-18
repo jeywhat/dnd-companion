@@ -172,7 +172,15 @@ export async function handleCombatTrackerAction(button) {
     if (!window.confirm(t("confirm.endCombat"))) return true;
     try {
       await deleteCombat({ firebaseUrl, code });
+      // Reset immédiat sans attendre le SSE
+      state.combat.state        = "idle";
+      state.combat.currentTurn  = 0;
+      state.combat.round        = 1;
+      state.combat.initiatives  = {};
+      state.combat.panelVisible = true;
+      state.combat._modalRoll   = null;
       setStatus("info", t("status.combatEnded"));
+      triggerRender(false);
     } catch (err) {
       setStatus("error", err.message);
     }
