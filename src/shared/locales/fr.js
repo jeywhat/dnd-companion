@@ -307,6 +307,8 @@ export const fr = {
   "party.title": "Groupe",
   "party.ariaLabel": "Panneau du groupe",
   "party.hp": "{current}/{max} PV",
+  "party.online": "En ligne",
+  "party.offline": "Hors ligne",
 
   // ── Salle de jeu ─────────────────────────────────────────────────────────────
   "nav.room": "Salle",

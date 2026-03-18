@@ -1,7 +1,9 @@
 import { state } from "../../app/store.js";
-import { SESSION_ID } from "../../adapters/firebase-sync.js";
+import { PLAYER_ID } from "../../adapters/firebase-sync.js";
 import { t } from "../../shared/i18n.js";
 import { escapeHtml } from "../../shared/dom.js";
+
+const ONLINE_THRESHOLD_MS = 90_000;
 
 function hpBarClass(current, max) {
   const pct = max > 0 ? (current / max) * 100 : 0;
@@ -10,7 +12,20 @@ function hpBarClass(current, max) {
   return "party-hp-bar--full";
 }
 
+function getPresence(member) {
+  if (!member.updatedAt) return "unknown";
+  return (Date.now() - member.updatedAt) < ONLINE_THRESHOLD_MS ? "online" : "offline";
+}
+
+function presenceDot(presence, isSelf) {
+  if (isSelf) return "";
+  const label = presence === "online" ? t("party.online") : t("party.offline");
+  return `<span class="presence-dot presence-dot--${presence}" title="${escapeHtml(label)}"></span>`;
+}
+
 function buildMemberCard(member, isSelf) {
+  const presence = getPresence(member);
+  const offline  = !isSelf && presence === "offline";
   const hpPct   = member.hpMax > 0 ? Math.round((member.currentHp / member.hpMax) * 100) : 0;
   const name    = member.name      || t("app.defaultCharName");
   const cls     = member.className || t("app.defaultClass");
@@ -22,10 +37,15 @@ function buildMemberCard(member, isSelf) {
     ? `<img class="party-avatar" src="${escapeHtml(member.avatar)}" alt="${escapeHtml(name)}" loading="lazy">`
     : `<div class="party-avatar party-avatar--initial" style="--pcolor:${color}">${initial}</div>`;
 
-  return `<li class="party-card${isSelf ? " party-card--self" : ""}${isGm ? " party-card--gm" : ""}">
+  const offlineCls = offline ? " party-card--offline" : "";
+
+  return `<li class="party-card${isSelf ? " party-card--self" : ""}${isGm ? " party-card--gm" : ""}${offlineCls}">
     ${avatarHtml}
     <div class="party-info">
-      <span class="party-name" title="${escapeHtml(name)}">${escapeHtml(name)}</span>
+      <div style="display:flex;align-items:center;gap:0.3rem">
+        <span class="party-name" title="${escapeHtml(name)}">${escapeHtml(name)}</span>
+        ${presenceDot(presence, isSelf)}
+      </div>
       ${isGm ? `<span class="party-gm-badge">${t("room.active.gmBadge")}</span>` : ""}
       <span class="party-class">${escapeHtml(cls)} · ${member.level}</span>
       <div class="party-hp-track">
@@ -48,7 +68,7 @@ export function renderParty() {
   if (!inRoom) return;
 
   const self = {
-    sid      : SESSION_ID,
+    sid      : PLAYER_ID,
     name     : state.character.name,
     className: state.character.className,
     level    : state.character.level,

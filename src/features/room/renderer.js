@@ -1,7 +1,9 @@
 import { state } from "../../app/store.js";
-import { SESSION_ID } from "../../adapters/firebase-sync.js";
+import { PLAYER_ID } from "../../adapters/firebase-sync.js";
 import { t } from "../../shared/i18n.js";
 import { escapeHtml } from "../../shared/dom.js";
+
+const ONLINE_THRESHOLD_MS = 90_000;
 
 function hpBarClass(current, max) {
   const pct = max > 0 ? (current / max) * 100 : 0;
@@ -10,10 +12,24 @@ function hpBarClass(current, max) {
   return "party-hp-bar--full";
 }
 
+function getPresence(member, isSelf) {
+  if (isSelf) return "online";
+  if (!member.updatedAt) return "unknown";
+  return (Date.now() - member.updatedAt) < ONLINE_THRESHOLD_MS ? "online" : "offline";
+}
+
+function presenceDot(presence, isSelf) {
+  if (isSelf) return "";
+  const label = presence === "online" ? t("party.online") : t("party.offline");
+  return `<span class="presence-dot presence-dot--${presence}" title="${escapeHtml(label)}"></span>`;
+}
+
 function buildGmCard(member, isSelf) {
-  const name    = member.name || t("app.defaultCharName");
-  const color   = escapeHtml(member.diceColor || "#fbbf24");
-  const initial = escapeHtml(name.charAt(0).toUpperCase());
+  const name     = member.name || t("app.defaultCharName");
+  const color    = escapeHtml(member.diceColor || "#fbbf24");
+  const initial  = escapeHtml(name.charAt(0).toUpperCase());
+  const presence = getPresence(member, isSelf);
+  const offline  = !isSelf && presence === "offline";
 
   const avatarHtml = member.avatar
     ? `<img class="room-gm-avatar" src="${escapeHtml(member.avatar)}" alt="${escapeHtml(name)}" loading="lazy">`
@@ -23,17 +39,22 @@ function buildGmCard(member, isSelf) {
     ? `<span class="room-badge room-badge--you">${t("room.active.youBadge")}</span>`
     : "";
 
-  return `<div class="room-gm-card">
+  return `<div class="room-gm-card${offline ? " room-gm-card--offline" : ""}">
     <div class="room-gm-crown">👑</div>
     ${avatarHtml}
     <div class="room-gm-info">
       <span class="room-gm-role">${t("room.role.gm")}</span>
-      <span class="room-gm-name">${escapeHtml(name)} ${selfBadge}</span>
+      <div style="display:flex;align-items:center;gap:0.35rem">
+        <span class="room-gm-name">${escapeHtml(name)} ${selfBadge}</span>
+        ${presenceDot(presence, isSelf)}
+      </div>
     </div>
   </div>`;
 }
 
 function buildPlayerCard(member, { isSelf, canKick }) {
+  const presence = getPresence(member, isSelf);
+  const offline  = !isSelf && presence === "offline";
   const hpPct   = member.hpMax > 0 ? Math.round((member.currentHp / member.hpMax) * 100) : 0;
   const name    = member.name      || t("app.defaultCharName");
   const cls     = member.className || t("app.defaultClass");
@@ -61,12 +82,13 @@ function buildPlayerCard(member, { isSelf, canKick }) {
        </div>`
     : "";
 
-  return `<li class="room-member-card">
+  return `<li class="room-member-card${offline ? " room-member-card--offline" : ""}">
     ${avatarHtml}
     <div class="room-member-info">
       <div class="room-member-name-row">
         <span class="room-member-name" title="${escapeHtml(name)}">${escapeHtml(name)}</span>
         ${selfBadge}
+        ${presenceDot(presence, isSelf)}
       </div>
       <span class="room-member-class">${escapeHtml(cls)} · ${t("character.level.label")} ${member.level}</span>
       <div class="party-hp-track">
@@ -136,7 +158,7 @@ function renderActiveRoom(container) {
   const ownName = (state.character.name || "").trim();
 
   const self = {
-    sid      : SESSION_ID,
+    sid      : PLAYER_ID,
     name     : state.character.name,
     className: state.character.className,
     level    : state.character.level,
@@ -158,13 +180,13 @@ function renderActiveRoom(container) {
   const playerCount   = playerMembers.length;
 
   const gmHtml = gmMember
-    ? buildGmCard(gmMember, gmMember.sid === SESSION_ID)
+    ? buildGmCard(gmMember, gmMember.sid === PLAYER_ID)
     : "";
 
   const playersHtml = playerMembers.map(m =>
     buildPlayerCard(m, {
-      isSelf  : m.sid === SESSION_ID,
-      canKick : isGm && m.sid !== SESSION_ID,
+      isSelf  : m.sid === PLAYER_ID,
+      canKick : isGm && m.sid !== PLAYER_ID,
     })
   ).join("");
 

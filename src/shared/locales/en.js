@@ -307,6 +307,8 @@ export const en = {
   "party.title": "Party",
   "party.ariaLabel": "Party panel",
   "party.hp": "{current}/{max} HP",
+  "party.online": "Online",
+  "party.offline": "Offline",
 
   // ── Game room ─────────────────────────────────────────────────────────────────
   "nav.room": "Room",

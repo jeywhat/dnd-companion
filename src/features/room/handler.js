@@ -1,4 +1,4 @@
-import { state, setStatus, commit, getCharacterName } from "../../app/store.js";
+import { state, setStatus, commit, getCharacterName, queuePartySync, triggerRender } from "../../app/store.js";
 import { saveState } from "../../adapters/storage.js";
 import { PLAYER_ID } from "../../adapters/firebase-sync.js";
 import {
@@ -19,6 +19,32 @@ import { reconnectSync } from "../settings/handler.js";
 import { connectCombat, disconnectCombat } from "../combat-tracker/handler.js";
 import { t } from "../../shared/i18n.js";
 
+// ─── Presence heartbeat ───────────────────────────────────────────────────────
+
+let _heartbeatId  = null;
+let _renderTickId = null;
+
+function startHeartbeat() {
+  stopHeartbeat();
+  _heartbeatId = window.setInterval(() => {
+    const { firebaseUrl, syncRoom } = state.settings;
+    if (!firebaseUrl || !syncRoom) return;
+    queuePartySync();
+    if (state.room.role === "gm") {
+      cleanupStalePartyMembers({ firebaseUrl, code: syncRoom }).catch(() => {});
+    }
+  }, 30_000);
+  // Re-render periodically to refresh presence dots without any user action
+  _renderTickId = window.setInterval(() => triggerRender(false), 30_000);
+}
+
+function stopHeartbeat() {
+  window.clearInterval(_heartbeatId);
+  window.clearInterval(_renderTickId);
+  _heartbeatId  = null;
+  _renderTickId = null;
+}
+
 // ─── Internal helpers ─────────────────────────────────────────────────────────
 
 function applyRoom({ role, name, code, gmSid }) {
@@ -30,11 +56,13 @@ function applyRoom({ role, name, code, gmSid }) {
   commit(true);
   reconnectSync();
   connectCombat({ firebaseUrl: state.settings.firebaseUrl, roomId: code });
+  startHeartbeat();
 }
 
 export function clearRoom() {
   stopKickListener();
   stopMetaListener();
+  stopHeartbeat();
   disconnectCombat();
 
   // Supprimer notre entrée de party Firebase avant de vider l'état local
@@ -87,6 +115,7 @@ export function reconnectRoom() {
   startListeners(state.room.role, state.room.code);
   connectCombat({ firebaseUrl: state.settings.firebaseUrl, roomId: state.room.code });
   cleanupStalePartyMembers({ firebaseUrl: state.settings.firebaseUrl, code: state.room.code }).catch(() => {});
+  startHeartbeat();
 }
 
 // ─── Action handler ───────────────────────────────────────────────────────────
