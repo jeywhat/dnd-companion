@@ -210,7 +210,7 @@ export function handleSettingsInput(target) {
     setStatus("info", t("status.settingSaved"));
     commit(true);
 
-    if (target.dataset.settingField === "firebaseUrl" || target.dataset.settingField === "syncRoom") {
+    if (target.dataset.settingField === "firebaseUrl") {
       reconnectSync();
     }
     return true;

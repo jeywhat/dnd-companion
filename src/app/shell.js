@@ -488,17 +488,7 @@ export function getAppTemplate() {
                   data-setting-field="firebaseUrl"
                 />
               </label>
-              <label class="field" for="sync-room" style="margin-top:0.6rem">
-                <span>${t("settings.sync.roomLabel")}</span>
-                <input
-                  id="sync-room"
-                  type="text"
-                  autocomplete="off"
-                  placeholder="${t("settings.sync.roomPlaceholder")}"
-                  data-setting-field="syncRoom"
-                />
-              </label>
-              <label class="field" for="dice-color" style="margin-top:0.6rem">
+              <label class="field" for="dice-color"style="margin-top:0.6rem">
                 <span>${t("settings.sync.diceColorLabel")}</span>
                 <div style="display:flex;align-items:center;gap:0.75rem">
                   <input

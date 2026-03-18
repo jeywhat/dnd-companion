@@ -29,7 +29,6 @@ export function renderFormValues(syncInputs = true) {
     updateFieldValue(appElement, "[data-current-hp-input]", state.character.currentHp);
     updateFieldValue(appElement, "[data-setting-field='webhookUrl']", state.settings.webhookUrl ?? "");
     updateFieldValue(appElement, "[data-setting-field='firebaseUrl']", state.settings.firebaseUrl ?? "");
-    updateFieldValue(appElement, "[data-setting-field='syncRoom']", state.settings.syncRoom ?? "");
     updateFieldValue(appElement, "[data-setting-field='diceColor']", state.settings.diceColor ?? "#7c3aed");
 
     for (const ability of ABILITIES) {
