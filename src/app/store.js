@@ -119,6 +119,10 @@ function normaliseRuntimeState() {
   state.character.armorClass = clamp(toInt(state.character.armorClass, 10), 0, 40);
 }
 
+export function triggerRender(syncInputs = false) {
+  _renderFn(syncInputs);
+}
+
 export function commit(syncInputs = true) {
   normaliseRuntimeState();
   queueSave();
