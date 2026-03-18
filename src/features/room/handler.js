@@ -1,4 +1,5 @@
 import { state, setStatus, commit, getCharacterName } from "../../app/store.js";
+import { saveState } from "../../adapters/storage.js";
 import { SESSION_ID } from "../../adapters/firebase-sync.js";
 import {
   generateRoomCode,
@@ -30,6 +31,14 @@ function applyRoom({ role, name, code, gmSid }) {
 export function clearRoom() {
   stopKickListener();
   stopMetaListener();
+
+  // Supprimer notre entrée de party Firebase avant de vider l'état local
+  const { firebaseUrl } = state.settings;
+  const code = state.room.code;
+  if (firebaseUrl && code) {
+    removePartyMember({ firebaseUrl, code, sid: SESSION_ID }).catch(() => {});
+  }
+
   state.room.role  = null;
   state.room.name  = "";
   state.room.code  = "";
@@ -38,6 +47,9 @@ export function clearRoom() {
   if (state.party) {
     for (const key of Object.keys(state.party)) delete state.party[key];
   }
+
+  // Sauvegarde immédiate (pas debounced) pour vider le localStorage maintenant
+  saveState(state);
   commit(true);
   reconnectSync();
 }
@@ -158,6 +170,10 @@ export async function handleRoomAction(button) {
     const { sid, name } = button.dataset;
     if (!window.confirm(t("confirm.kickMember", { name }))) return true;
     try {
+      // Supprimer l'entrée party AVANT d'écrire le kick,
+      // pour que les autres clients voient la disparition immédiatement
+      // même si le joueur expulsé ne reçoit jamais son SSE de kick.
+      await removePartyMember({ firebaseUrl: state.settings.firebaseUrl, code: state.room.code, sid });
       await kickMember({ firebaseUrl: state.settings.firebaseUrl, code: state.room.code, sid });
       setStatus("success", t("status.memberKicked", { name }));
       commit(false);
