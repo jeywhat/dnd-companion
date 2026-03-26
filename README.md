@@ -118,6 +118,16 @@ Automatic rich embeds for every action:
 - Safe-area padding for modern iOS/Android devices
 - Offline-capable (localStorage persistence)
 
+### 🗺️ Collaborative Whiteboard (Battle Map)
+Real-time collaborative battle map synced across all room members via Firebase:
+- **Background Map** — GM can import a map image (file upload or URL); resized client-side for performance
+- **Tokens** — Round colored tokens with initials and name labels; two types: **Player** and **Monster**
+- **Drag & Drop** — Native mouse/touch drag to move tokens on the board; coordinates stored in % for resolution independence
+- **Role-based permissions** — GM can import maps, create/delete/lock tokens, and move any token; players can only move their own token
+- **Token locking** — GM can lock individual tokens to prevent movement (visual dashed outline indicator)
+- **Real-time sync** — Background and token positions synced via Firebase REST + SSE (same pattern as the rest of the app)
+- **Player bar** — Players see their assigned token at the bottom with a drag hint
+
 ---
 
 ## 🖼️ Screenshots
@@ -252,9 +262,13 @@ Firebase Realtime Database is used for **zero-infrastructure multiplayer sync** 
 ├── _kicks/        → { [sid]: timestamp }                  (kick/ban signals)
 ├── _combat/       → { state, round, currentTurn,          (initiative tracker)
 │                       panelVisible, initiatives: { … } }
-└── {sessionId}/   → roll payload                          (dice roll events)
-    party/
-    └── {sessionId}/ → { name, className, level, currentHp, hpMax, avatar, … }
+├── whiteboard/
+│   ├── background → { url, name }                         (map image)
+│   └── tokens/    → { [tokenId]: { id, type, ownerId,    (battle tokens)
+│                       ownerName, name, x, y, color, locked } }
+├── {sessionId}/   → roll payload                          (dice roll events)
+└── party/
+    └── {playerId}/ → { name, className, level, currentHp, hpMax, avatar, … }
 ```
 
 #### Recommended Security Rules
@@ -388,7 +402,8 @@ dnd-companion/
 │   │   ├── discord.js                 # Webhook payloads & sending
 │   │   ├── firebase-sync.js           # Rolls SSE listener & publisher, party sync
 │   │   ├── room-sync.js               # Room create/join/kick/ban REST ops
-│   │   └── storage.js                 # localStorage persistence
+│   │   ├── storage.js                 # localStorage persistence
+│   │   └── whiteboard-sync.js         # Whiteboard background & tokens REST + SSE
 │   ├── features/                      # Feature-Sliced Design modules
 │   │   ├── combat/
 │   │   │   ├── handler.js             # HP, attacks, initiative actions
@@ -413,6 +428,9 @@ dnd-companion/
 │   │   ├── room/
 │   │   │   ├── handler.js             # Create/join/leave/dissolve, kick/ban
 │   │   │   └── renderer.js            # Room tab: no-room form, active room view
+│   │   ├── whiteboard/
+│   │   │   ├── handler.js             # Map import, token CRUD, drag & drop, modals
+│   │   │   └── renderer.js            # Board, tokens, player bar, empty states
 │   │   └── settings/
 │   │       ├── handler.js             # Discord, Firebase, export/import, lock
 │   │       └── renderer.js            # Session lock summary
@@ -421,8 +439,8 @@ dnd-companion/
 │   │   ├── dom.js                     # escapeHtml, uniqueId, updateFieldValue
 │   │   ├── i18n.js                    # t(key, params) — locale engine
 │   │   └── locales/
-│   │       ├── fr.js                  # French translations (default, ~250 keys)
-│   │       └── en.js                  # English translations (~250 keys)
+│   │       ├── fr.js                  # French translations (default, ~290 keys)
+│   │       └── en.js                  # English translations (~290 keys)
 │   └── data/
 │       └── constants.js               # ABILITIES, SKILLS, ROLL_MODES, defaults
 ├── public/

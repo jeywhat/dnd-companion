@@ -69,6 +69,10 @@ export function getAppTemplate() {
           <span class="nav-icon" aria-hidden="true">🏰</span>
           <span class="nav-label">${t("nav.room")}</span>
         </button>
+        <button type="button" class="nav-button" data-action="switch-tab" data-tab="whiteboard">
+          <span class="nav-icon" aria-hidden="true">🗺️</span>
+          <span class="nav-label">${t("nav.whiteboard")}</span>
+        </button>
         <button type="button" class="nav-button" data-action="switch-tab" data-tab="settings">
           <span class="nav-icon" aria-hidden="true">⚙️</span>
           <span class="nav-label">${t("nav.settings")}</span>
@@ -440,6 +444,24 @@ export function getAppTemplate() {
             <section class="stack-form" aria-label="${t("room.section.ariaLabel")}">
               <div data-room-panel></div>
             </section>
+          </section>
+
+          <section class="panel wb-panel" data-panel="whiteboard" hidden>
+            <div class="wb-toolbar" data-wb-toolbar hidden>
+              <button type="button" class="wb-toolbar-btn" data-action="wb-import-map">${t("whiteboard.toolbar.importMap")}</button>
+              <button type="button" class="wb-toolbar-btn" data-action="wb-import-url">${t("whiteboard.toolbar.importUrl")}</button>
+              <button type="button" class="wb-toolbar-btn" data-action="wb-clear-map">${t("whiteboard.toolbar.clearMap")}</button>
+              <span class="wb-toolbar-sep"></span>
+              <button type="button" class="wb-toolbar-btn" data-action="wb-add-token">${t("whiteboard.toolbar.addToken")}</button>
+              <button type="button" class="wb-toolbar-btn" data-action="wb-clear-tokens">${t("whiteboard.toolbar.clearTokens")}</button>
+            </div>
+            <div class="wb-board" data-wb-board>
+              <div class="wb-board-inner" data-wb-board-inner>
+                <div class="wb-empty"><p>${t("whiteboard.empty")}</p></div>
+              </div>
+            </div>
+            <div class="wb-player-bar" data-wb-player-bar hidden></div>
+            <div data-wb-modal hidden></div>
           </section>
 
           <section class="panel" data-panel="settings" hidden>

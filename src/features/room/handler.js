@@ -17,6 +17,7 @@ import {
 } from "../../adapters/room-sync.js";
 import { reconnectSync } from "../settings/handler.js";
 import { connectCombat, disconnectCombat } from "../combat-tracker/handler.js";
+import { connectWhiteboardSync, disconnectWhiteboardSync } from "../whiteboard/handler.js";
 import { t } from "../../shared/i18n.js";
 
 // ─── Presence heartbeat ───────────────────────────────────────────────────────
@@ -56,6 +57,7 @@ function applyRoom({ role, name, code, gmSid }) {
   commit(true);
   reconnectSync();
   connectCombat({ firebaseUrl: state.settings.firebaseUrl, roomId: code });
+  connectWhiteboardSync();
   startHeartbeat();
 }
 
@@ -64,6 +66,7 @@ export function clearRoom() {
   stopMetaListener();
   stopHeartbeat();
   disconnectCombat();
+  disconnectWhiteboardSync();
 
   // Supprimer notre entrée de party Firebase avant de vider l'état local
   const { firebaseUrl } = state.settings;
@@ -114,6 +117,7 @@ export function reconnectRoom() {
   if (!state.room?.role || !state.room?.code) return;
   startListeners(state.room.role, state.room.code);
   connectCombat({ firebaseUrl: state.settings.firebaseUrl, roomId: state.room.code });
+  connectWhiteboardSync();
   cleanupStalePartyMembers({ firebaseUrl: state.settings.firebaseUrl, code: state.room.code }).catch(() => {});
   startHeartbeat();
 }
