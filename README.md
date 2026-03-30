@@ -118,15 +118,19 @@ Automatic rich embeds for every action:
 - Safe-area padding for modern iOS/Android devices
 - Offline-capable (localStorage persistence)
 
-### 🗺️ Collaborative Whiteboard (Battle Map)
-Real-time collaborative battle map synced across all room members via Firebase:
-- **Background Map** — GM can import a map image (file upload or URL); resized client-side for performance
-- **Tokens** — Round colored tokens with initials and name labels; two types: **Player** and **Monster**
-- **Drag & Drop** — Native mouse/touch drag to move tokens on the board; coordinates stored in % for resolution independence
-- **Role-based permissions** — GM can import maps, create/delete/lock tokens, and move any token; players can only move their own token
-- **Token locking** — GM can lock individual tokens to prevent movement (visual dashed outline indicator)
-- **Real-time sync** — Background and token positions synced via Firebase REST + SSE (same pattern as the rest of the app)
-- **Player bar** — Players see their assigned token at the bottom with a drag hint
+### 🗺️ VTT Whiteboard (Battle Map)
+Full virtual tabletop experience synced in real time via Firebase, inspired by Roll20:
+- **Always-visible Background** — The whiteboard canvas is the site background, visible behind all panels at all times. Switch to the 🗺️ tab for full-screen interaction.
+- **Infinite Canvas** — Zoom (mousewheel, 20%–300%) and pan (right-click / middle-click / Space+drag) like a real VTT
+- **Grid System** — 70px grid cells drawn on `<canvas>`, with **grid snapping** for tokens and maps
+- **World Coordinates** — All positions stored in world-space units; `worldToScreen` / `screenToWorld` conversion handles zoom/pan
+- **Multiple Map Images** — GM can place several map images on the board, each with position, size (in cells), and z-order
+- **Token System** — Round colored tokens with initials and labels; two types: **Player** and **Monster**
+- **Tool Modes** — Floating toolbox with **Select** (move tokens), **Pan** (move view), and **Map** (move maps, GM only)
+- **Role-based Permissions** — GM controls maps, creates/deletes/locks tokens; players can only move their own token
+- **Camera Sync** — GM can force their camera view (zoom + pan) to all players in the room
+- **Hybrid Rendering** — Canvas for grid + maps (efficient redraw), DOM overlay for tokens (keeps data-action delegation)
+- **Semi-transparent Panels** — Other tabs overlay the whiteboard with blurred backgrounds, keeping the battle map visible
 
 ---
 
@@ -263,9 +267,11 @@ Firebase Realtime Database is used for **zero-infrastructure multiplayer sync** 
 ├── _combat/       → { state, round, currentTurn,          (initiative tracker)
 │                       panelVisible, initiatives: { … } }
 ├── whiteboard/
-│   ├── background → { url, name }                         (map image)
-│   └── tokens/    → { [tokenId]: { id, type, ownerId,    (battle tokens)
-│                       ownerName, name, x, y, color, locked } }
+│   ├── maps/      → { [mapId]: { id, url, name,          (map images)
+│   │                   x, y, width, height, zIndex } }
+│   ├── tokens/    → { [tokenId]: { id, type, ownerId,    (battle tokens)
+│   │                   name, worldX, worldY, color, locked } }
+│   └── camera     → { zoom, offsetX, offsetY, synced }   (shared view)
 ├── {sessionId}/   → roll payload                          (dice roll events)
 └── party/
     └── {playerId}/ → { name, className, level, currentHp, hpMax, avatar, … }
@@ -403,7 +409,7 @@ dnd-companion/
 │   │   ├── firebase-sync.js           # Rolls SSE listener & publisher, party sync
 │   │   ├── room-sync.js               # Room create/join/kick/ban REST ops
 │   │   ├── storage.js                 # localStorage persistence
-│   │   └── whiteboard-sync.js         # Whiteboard background & tokens REST + SSE
+│   │   └── whiteboard-sync.js         # Whiteboard maps, tokens, camera REST + SSE
 │   ├── features/                      # Feature-Sliced Design modules
 │   │   ├── combat/
 │   │   │   ├── handler.js             # HP, attacks, initiative actions
@@ -429,8 +435,9 @@ dnd-companion/
 │   │   │   ├── handler.js             # Create/join/leave/dissolve, kick/ban
 │   │   │   └── renderer.js            # Room tab: no-room form, active room view
 │   │   ├── whiteboard/
+│   │   │   ├── camera.js              # Camera state, worldToScreen/screenToWorld, zoom/pan
 │   │   │   ├── handler.js             # Map import, token CRUD, drag & drop, modals
-│   │   │   └── renderer.js            # Board, tokens, player bar, empty states
+│   │   │   └── renderer.js            # Canvas grid+maps, DOM tokens, player bar
 │   │   └── settings/
 │   │       ├── handler.js             # Discord, Firebase, export/import, lock
 │   │       └── renderer.js            # Session lock summary
