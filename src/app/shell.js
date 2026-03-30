@@ -11,6 +11,34 @@ export function getAppTemplate() {
   const locale = getLocale();
   return `
     <div class="app-shell">
+      <!-- ── Whiteboard background (always visible) ── -->
+      <div class="wb-background" data-wb-board>
+        <canvas data-wb-canvas></canvas>
+        <div class="wb-overlay" data-wb-overlay></div>
+      </div>
+
+      <!-- ── Floating whiteboard toolbar (GM) ── -->
+      <div class="wb-floating-toolbar" data-wb-toolbar hidden>
+        <div class="wb-toolbox" role="group" aria-label="${t("whiteboard.title")}">
+          <button type="button" class="wb-tool-btn wb-tool-active" data-action="wb-set-tool" data-tool="select" title="${t("whiteboard.tool.select")}">🖱️</button>
+          <button type="button" class="wb-tool-btn" data-action="wb-set-tool" data-tool="pan" title="${t("whiteboard.tool.pan")}">✋</button>
+          <button type="button" class="wb-tool-btn" data-action="wb-set-tool" data-tool="map" title="${t("whiteboard.tool.map")}">🗺️</button>
+          <span class="wb-toolbar-sep"></span>
+          <button type="button" class="wb-tool-btn" data-action="wb-toggle-snap" title="${t("whiteboard.gridSnap")}">🧲</button>
+        </div>
+        <span class="wb-toolbar-sep"></span>
+        <button type="button" class="wb-toolbar-btn" data-action="wb-add-map">${t("whiteboard.toolbar.addMap")}</button>
+        <button type="button" class="wb-toolbar-btn" data-action="wb-add-map-url">${t("whiteboard.toolbar.addMapUrl")}</button>
+        <button type="button" class="wb-toolbar-btn" data-action="wb-clear-maps">${t("whiteboard.toolbar.clearMaps")}</button>
+        <span class="wb-toolbar-sep"></span>
+        <button type="button" class="wb-toolbar-btn" data-action="wb-add-token">${t("whiteboard.toolbar.addToken")}</button>
+        <button type="button" class="wb-toolbar-btn" data-action="wb-clear-tokens">${t("whiteboard.toolbar.clearTokens")}</button>
+        <span class="wb-toolbar-sep"></span>
+        <button type="button" class="wb-toolbar-btn" data-action="wb-sync-camera">${t("whiteboard.toolbar.syncCamera")}</button>
+        <button type="button" class="wb-toolbar-btn" data-action="wb-reset-view">${t("whiteboard.toolbar.resetView")}</button>
+        <span class="wb-zoom-label" data-wb-zoom></span>
+      </div>
+
       <header class="app-header card">
         <div>
           <p class="eyebrow">${t("header.brand")}</p>
@@ -446,24 +474,6 @@ export function getAppTemplate() {
             </section>
           </section>
 
-          <section class="panel wb-panel" data-panel="whiteboard" hidden>
-            <div class="wb-toolbar" data-wb-toolbar hidden>
-              <button type="button" class="wb-toolbar-btn" data-action="wb-import-map">${t("whiteboard.toolbar.importMap")}</button>
-              <button type="button" class="wb-toolbar-btn" data-action="wb-import-url">${t("whiteboard.toolbar.importUrl")}</button>
-              <button type="button" class="wb-toolbar-btn" data-action="wb-clear-map">${t("whiteboard.toolbar.clearMap")}</button>
-              <span class="wb-toolbar-sep"></span>
-              <button type="button" class="wb-toolbar-btn" data-action="wb-add-token">${t("whiteboard.toolbar.addToken")}</button>
-              <button type="button" class="wb-toolbar-btn" data-action="wb-clear-tokens">${t("whiteboard.toolbar.clearTokens")}</button>
-            </div>
-            <div class="wb-board" data-wb-board>
-              <div class="wb-board-inner" data-wb-board-inner>
-                <div class="wb-empty"><p>${t("whiteboard.empty")}</p></div>
-              </div>
-            </div>
-            <div class="wb-player-bar" data-wb-player-bar hidden></div>
-            <div data-wb-modal hidden></div>
-          </section>
-
           <section class="panel" data-panel="settings" hidden>
             <article class="card">
               <div class="section-heading">
@@ -590,6 +600,8 @@ export function getAppTemplate() {
         aria-label="${t("combatTracker.panel.title")}">
       </aside>
       <div data-initiative-modal hidden></div>
+      <div class="wb-player-bar" data-wb-player-bar hidden></div>
+      <div data-wb-modal hidden></div>
     </div>
   `;
 }

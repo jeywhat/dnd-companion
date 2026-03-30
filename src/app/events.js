@@ -9,13 +9,19 @@ import { handleGrimoireAction, handleGrimoireSubmit } from "../features/grimoire
 import { handleCharacterInput, handleCharacterChange, handleCharacterSubmit, handleCharacterAction } from "../features/character/handler.js";
 import { handleSettingsAction, handleSettingsInput } from "../features/settings/handler.js";
 import { handleRoomAction } from "../features/room/handler.js";
-import { handleWhiteboardAction, initDragListeners } from "../features/whiteboard/handler.js";
+import { handleWhiteboardAction, initBoardListeners, resetBoardListeners } from "../features/whiteboard/handler.js";
 
 function switchTab(tab) {
   if (tab === state.ui.activeTab) return;
 
   state.ui.activeTab = tab;
   commit(false);
+
+  // When whiteboard tab is active, hide panel stack to show full canvas
+  const panelStack = appElement.querySelector(".panel-stack");
+  if (panelStack) {
+    panelStack.classList.toggle("wb-fullscreen", tab === "whiteboard");
+  }
 
   const panel = appElement.querySelector(`[data-panel="${tab}"]`);
   if (panel) {
@@ -85,7 +91,8 @@ export function bindEvents(appElement) {
     if (localeBtn) {
       setLocale(localeBtn.dataset.locale);
       appElement.innerHTML = getAppTemplate();
-      initDragListeners(appElement.querySelector("[data-panel='whiteboard']"));
+      resetBoardListeners();
+      initBoardListeners();
       render(true);
       return;
     }
@@ -103,6 +110,6 @@ export function bindEvents(appElement) {
   appElement.addEventListener("change", handleChange);
   appElement.addEventListener("submit", handleSubmit);
 
-  // Init whiteboard drag listeners on the board panel
-  initDragListeners(appElement.querySelector("[data-panel='whiteboard']"));
+  // Init whiteboard board listeners (zoom, pan, drag)
+  initBoardListeners();
 }

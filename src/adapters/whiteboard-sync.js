@@ -1,59 +1,86 @@
 /**
  * Whiteboard sync — Firebase Realtime Database REST + SSE.
  *
- * Data lives at /rooms/{roomId}/whiteboard/
- *   background : { url, name }
- *   tokens/{tokenId} : { id, type, ownerId, ownerName, name, x, y, color, locked }
+ * Data layout at /rooms/{roomId}/whiteboard/:
+ *   maps/{mapId}    : { id, url, name, x, y, width, height, zIndex }
+ *   tokens/{tokenId}: { id, type, ownerId, name, worldX, worldY, color, locked }
+ *   camera          : { zoom, offsetX, offsetY, synced }
+ *
+ * Backward compat: old "background" field is ignored; maps replace it.
  */
 
 import { buildBase, PLAYER_ID } from "./firebase-sync.js";
 
-let _bgSource     = null;
-let _tokensSource = null;
-let _onBackground = null;
-let _onTokens     = null;
+let _mapsSource    = null;
+let _tokensSource  = null;
+let _cameraSource  = null;
+let _onMaps        = null;
+let _onTokens      = null;
+let _onCamera      = null;
 
 function wbBase(firebaseUrl, roomId) {
   return `${buildBase(firebaseUrl, roomId)}/whiteboard`;
 }
 
-// ─── Background image ─────────────────────────────────────────────────────────
+// ─── Maps CRUD ────────────────────────────────────────────────────────────────
 
-export async function publishBackground({ firebaseUrl, roomId, background }) {
-  if (!firebaseUrl?.startsWith("https://") || !roomId?.trim()) return;
-  const url = `${wbBase(firebaseUrl, roomId)}/background.json`;
-  await fetch(url, {
+export async function publishMap({ firebaseUrl, roomId, map }) {
+  if (!firebaseUrl?.startsWith("https://") || !roomId?.trim()) {
+    throw new Error("Firebase not configured");
+  }
+  const url = `${wbBase(firebaseUrl, roomId)}/maps/${map.id}.json`;
+  const res = await fetch(url, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(background),
-  }).catch((err) => console.warn("[WhiteboardSync] bg publish error:", err));
+    body: JSON.stringify({ ...map, updatedAt: Date.now() }),
+  });
+  if (!res.ok) throw new Error(`Firebase write failed (${res.status})`);
 }
 
-export async function clearBackground({ firebaseUrl, roomId }) {
+export async function updateMapPosition({ firebaseUrl, roomId, mapId, x, y }) {
   if (!firebaseUrl?.startsWith("https://") || !roomId?.trim()) return;
-  const url = `${wbBase(firebaseUrl, roomId)}/background.json`;
+  const url = `${wbBase(firebaseUrl, roomId)}/maps/${mapId}.json`;
+  await fetch(url, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ x, y, updatedAt: Date.now() }),
+  }).catch((err) => console.warn("[WhiteboardSync] map position error:", err));
+}
+
+export async function deleteMap({ firebaseUrl, roomId, mapId }) {
+  if (!firebaseUrl?.startsWith("https://") || !roomId?.trim()) return;
+  const url = `${wbBase(firebaseUrl, roomId)}/maps/${mapId}.json`;
+  await fetch(url, { method: "DELETE" }).catch(() => {});
+}
+
+export async function clearAllMaps({ firebaseUrl, roomId }) {
+  if (!firebaseUrl?.startsWith("https://") || !roomId?.trim()) return;
+  const url = `${wbBase(firebaseUrl, roomId)}/maps.json`;
   await fetch(url, { method: "DELETE" }).catch(() => {});
 }
 
 // ─── Tokens CRUD ──────────────────────────────────────────────────────────────
 
 export async function publishToken({ firebaseUrl, roomId, token }) {
-  if (!firebaseUrl?.startsWith("https://") || !roomId?.trim()) return;
+  if (!firebaseUrl?.startsWith("https://") || !roomId?.trim()) {
+    throw new Error("Firebase not configured");
+  }
   const url = `${wbBase(firebaseUrl, roomId)}/tokens/${token.id}.json`;
-  await fetch(url, {
+  const res = await fetch(url, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ...token, updatedAt: Date.now() }),
-  }).catch((err) => console.warn("[WhiteboardSync] token publish error:", err));
+  });
+  if (!res.ok) throw new Error(`Firebase write failed (${res.status})`);
 }
 
-export async function updateTokenPosition({ firebaseUrl, roomId, tokenId, x, y }) {
+export async function updateTokenPosition({ firebaseUrl, roomId, tokenId, worldX, worldY }) {
   if (!firebaseUrl?.startsWith("https://") || !roomId?.trim()) return;
   const url = `${wbBase(firebaseUrl, roomId)}/tokens/${tokenId}.json`;
   await fetch(url, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ x, y, updatedAt: Date.now() }),
+    body: JSON.stringify({ worldX, worldY, updatedAt: Date.now() }),
   }).catch((err) => console.warn("[WhiteboardSync] position update error:", err));
 }
 
@@ -69,88 +96,120 @@ export async function clearAllTokens({ firebaseUrl, roomId }) {
   await fetch(url, { method: "DELETE" }).catch(() => {});
 }
 
+// ─── Camera (shared view) ─────────────────────────────────────────────────────
+
+export async function publishCamera({ firebaseUrl, roomId, cam }) {
+  if (!firebaseUrl?.startsWith("https://") || !roomId?.trim()) return;
+  const url = `${wbBase(firebaseUrl, roomId)}/camera.json`;
+  await fetch(url, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(cam),
+  }).catch((err) => console.warn("[WhiteboardSync] camera publish error:", err));
+}
+
+export async function clearCamera({ firebaseUrl, roomId }) {
+  if (!firebaseUrl?.startsWith("https://") || !roomId?.trim()) return;
+  const url = `${wbBase(firebaseUrl, roomId)}/camera.json`;
+  await fetch(url, { method: "DELETE" }).catch(() => {});
+}
+
 // ─── SSE listeners ────────────────────────────────────────────────────────────
 
-export function connectWhiteboard({ firebaseUrl, roomId, onBackground, onTokens }) {
+function listenNode(url, callback) {
+  const src = new EventSource(url);
+
+  src.addEventListener("put", (e) => {
+    try {
+      const { path, data } = JSON.parse(e.data);
+      if (!path) return;
+      if (path === "/") {
+        callback("snapshot", data);
+      } else {
+        const parts = path.replace(/^\//, "").split("/");
+        const id = parts[0];
+        if (parts.length === 1) {
+          callback(data === null ? "delete" : "put", data, id);
+        } else {
+          callback("field", { [parts[1]]: data }, id);
+        }
+      }
+    } catch { /* malformed */ }
+  });
+
+  src.addEventListener("patch", (e) => {
+    try {
+      const { path, data } = JSON.parse(e.data);
+      if (!data || typeof data !== "object") return;
+      if (!path || path === "/") {
+        for (const [id, d] of Object.entries(data)) {
+          callback(d === null ? "delete" : "put", d, id);
+        }
+      } else {
+        callback("patch", data, path.replace(/^\//, ""));
+      }
+    } catch { /* malformed */ }
+  });
+
+  src.onerror = () => console.info("[WhiteboardSync] reconnecting…");
+  return src;
+}
+
+export function connectWhiteboard({ firebaseUrl, roomId, onMaps, onTokens, onCamera }) {
   disconnectWhiteboard();
   if (!firebaseUrl?.startsWith("https://") || !roomId?.trim()) return;
 
-  _onBackground = onBackground;
+  _onMaps = onMaps;
   _onTokens = onTokens;
+  _onCamera = onCamera;
 
-  // Listen to background changes
-  const bgUrl = `${wbBase(firebaseUrl, roomId)}/background.json`;
+  const base = wbBase(firebaseUrl, roomId);
+
+  // Maps SSE
   try {
-    _bgSource = new EventSource(bgUrl);
-    _bgSource.addEventListener("put", (e) => {
-      try {
-        const { data } = JSON.parse(e.data);
-        _onBackground?.(data);
-      } catch { /* malformed */ }
+    _mapsSource = listenNode(`${base}/maps.json`, (event, data, id) => {
+      _onMaps?.(event, data, id);
     });
-    _bgSource.onerror = () => console.info("[WhiteboardSync] bg reconnecting…");
   } catch (err) {
-    console.warn("[WhiteboardSync] bg SSE error:", err);
+    console.warn("[WhiteboardSync] maps SSE error:", err);
   }
 
-  // Listen to token changes
-  const tokensUrl = `${wbBase(firebaseUrl, roomId)}/tokens.json`;
+  // Tokens SSE
   try {
-    _tokensSource = new EventSource(tokensUrl);
-
-    _tokensSource.addEventListener("put", (e) => {
-      try {
-        const { path, data } = JSON.parse(e.data);
-        if (!path) return;
-        if (path === "/") {
-          // Full snapshot
-          _onTokens?.("snapshot", data);
-        } else {
-          // Single token update: path = "/{tokenId}" or "/{tokenId}/x" etc.
-          const parts = path.replace(/^\//, "").split("/");
-          const tokenId = parts[0];
-          if (parts.length === 1) {
-            // Full token put/delete
-            _onTokens?.(data === null ? "delete" : "put", data, tokenId);
-          } else {
-            // Partial field update (from PATCH) — re-fetch handled by patch event
-            _onTokens?.("field", { [parts[1]]: data }, tokenId);
-          }
-        }
-      } catch { /* malformed */ }
+    _tokensSource = listenNode(`${base}/tokens.json`, (event, data, id) => {
+      _onTokens?.(event, data, id);
     });
-
-    _tokensSource.addEventListener("patch", (e) => {
-      try {
-        const { path, data } = JSON.parse(e.data);
-        if (!path || !data || typeof data !== "object") return;
-        if (path === "/") {
-          // Multiple tokens updated at root
-          for (const [tokenId, tokenData] of Object.entries(data)) {
-            _onTokens?.(tokenData === null ? "delete" : "put", tokenData, tokenId);
-          }
-        } else {
-          // Fields patched on a single token: path = "/{tokenId}"
-          const tokenId = path.replace(/^\//, "");
-          _onTokens?.("patch", data, tokenId);
-        }
-      } catch { /* malformed */ }
-    });
-
-    _tokensSource.onerror = () => console.info("[WhiteboardSync] tokens reconnecting…");
-    console.info("[WhiteboardSync] Connected to", wbBase(firebaseUrl, roomId));
   } catch (err) {
     console.warn("[WhiteboardSync] tokens SSE error:", err);
   }
+
+  // Camera SSE
+  try {
+    _cameraSource = new EventSource(`${base}/camera.json`);
+    _cameraSource.addEventListener("put", (e) => {
+      try {
+        const { data } = JSON.parse(e.data);
+        _onCamera?.(data);
+      } catch { /* malformed */ }
+    });
+    _cameraSource.onerror = () => {};
+  } catch (err) {
+    console.warn("[WhiteboardSync] camera SSE error:", err);
+  }
+
+  console.info("[WhiteboardSync] Connected to", base);
 }
 
 export function disconnectWhiteboard() {
-  _bgSource?.close();
+  _mapsSource?.close();
   _tokensSource?.close();
-  _bgSource = null;
+  _cameraSource?.close();
+  _mapsSource = null;
   _tokensSource = null;
-  _onBackground = null;
+  _cameraSource = null;
+  _onMaps = null;
   _onTokens = null;
+  _onCamera = null;
 }
 
 export function isConnected() {

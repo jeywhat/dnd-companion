@@ -91,6 +91,12 @@ export function renderFormValues(syncInputs = true) {
     panel.hidden = panel.dataset.panel !== state.ui.activeTab;
   }
 
+  // Toggle whiteboard fullscreen mode on panel stack
+  const panelStack = appElement.querySelector(".panel-stack");
+  if (panelStack) {
+    panelStack.classList.toggle("wb-fullscreen", state.ui.activeTab === "whiteboard");
+  }
+
   for (const navButton of appElement.querySelectorAll("[data-action='switch-tab']")) {
     const isActive = navButton.dataset.tab === state.ui.activeTab;
     navButton.classList.toggle("nav-button-active", isActive);
