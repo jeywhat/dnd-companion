@@ -69,6 +69,7 @@ No account required. No pay-to-play. Just open and roll.
 - **Roll Broadcasting** — Every d20 roll appears on all connected screens the moment it's thrown
 - **Animated Remote Popups** — Slot-machine number animation in SVG die shapes, stacked per player
 - **Party State Sync** — HP, avatar, class, and level synced in real time to the party panel
+- **Carte Sync** — Excalidraw elements (maps, tokens, drawings) synced in real time to all connected players
 - **Presence Heartbeat** — 30-second keep-alive publishes keep `updatedAt` fresh; presence dots reflect live connection status
 - **Auto-reconnect** — Seamlessly reconnects if Firebase connection drops
 
@@ -111,6 +112,15 @@ Automatic rich embeds for every action:
 - 🇫🇷 **French** (default) and 🇬🇧 **English** — switchable via flag buttons in the top-right corner
 - Preference persisted in `localStorage` — no page reload required
 - All UI strings, status messages, error messages, aria-labels, and confirm dialogs are fully translated
+
+### 🗺️ Collaborative Map (Excalidraw)
+- **Infinite Whiteboard** — Powered by Excalidraw: zoom, pan, draw, and annotate with vector tools
+- **Player Tokens** — Each player can place and move their own token (colored ellipse with ownership)
+- **GM Map Upload** — Game Master can drag-and-drop images as battle maps
+- **Real-time Sync** — All drawings and token movements are synced via Firebase RTDB to all connected players
+- **Permissions** — GM has full editing (draw, erase, upload maps, clear canvas); players can only move their own token
+- **Dark Theme** — Matches the app's dark UI; Excalidraw renders in dark mode
+- **Grid Mode** — Grid overlay enabled by default for tactical movement
 
 ### 📱 Mobile-First UI
 - Responsive bottom navigation bar always accessible
@@ -252,6 +262,8 @@ Firebase Realtime Database is used for **zero-infrastructure multiplayer sync** 
 ├── _kicks/        → { [sid]: timestamp }                  (kick/ban signals)
 ├── _combat/       → { state, round, currentTurn,          (initiative tracker)
 │                       panelVisible, initiatives: { … } }
+├── carte/
+│   └── elements/  → { [elementId]: ExcalidrawElement }    (map & token sync)
 └── {sessionId}/   → roll payload                          (dice roll events)
     party/
     └── {sessionId}/ → { name, className, level, currentHp, hpMax, avatar, … }
@@ -383,6 +395,7 @@ dnd-companion/
 │   │   └── dice.js                    # Roll validation with crypto RNG
 │   ├── adapters/                      # External service wrappers (Ports)
 │   │   ├── anti-cheat.js              # Session baseline & integrity check
+│   │   ├── carte-sync.js              # Carte (Excalidraw) SSE & REST sync
 │   │   ├── combat-sync.js             # Initiative tracker SSE & REST ops
 │   │   ├── dice-animation.js          # @3d-dice/dice-box wrapper
 │   │   ├── discord.js                 # Webhook payloads & sending
@@ -396,6 +409,9 @@ dnd-companion/
 │   │   ├── combat-tracker/
 │   │   │   ├── handler.js             # GM combat actions, player initiative modal
 │   │   │   └── renderer.js            # Right timeline panel, GM tab, modal
+│   │   ├── carte/
+│   │   │   ├── handler.js             # Add token, upload map, clear canvas
+│   │   │   └── renderer.js            # Excalidraw mount, Firebase sync, permissions
 │   │   ├── rolls/
 │   │   │   ├── engine.js              # performRoll() — shared by all features
 │   │   │   ├── handler.js             # Ability/skill/save/free dice actions

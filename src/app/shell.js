@@ -65,6 +65,10 @@ export function getAppTemplate() {
           <span class="nav-icon" aria-hidden="true">📜</span>
           <span class="nav-label">${t("nav.character")}</span>
         </button>
+        <button type="button" class="nav-button" data-action="switch-tab" data-tab="carte">
+          <span class="nav-icon" aria-hidden="true">🗺️</span>
+          <span class="nav-label">${t("nav.carte")}</span>
+        </button>
         <button type="button" class="nav-button" data-action="switch-tab" data-tab="room">
           <span class="nav-icon" aria-hidden="true">🏰</span>
           <span class="nav-label">${t("nav.room")}</span>
@@ -554,6 +558,15 @@ export function getAppTemplate() {
               </div>
               <div data-session-summary></div>
             </article>
+          </section>
+
+          <section class="panel carte-panel" data-panel="carte" hidden>
+            <div class="carte-toolbar">
+              <button type="button" class="carte-btn" data-action="carte-add-token">${t("carte.toolbar.addToken")}</button>
+              <button type="button" class="carte-btn carte-btn-gm" data-action="carte-upload-map">${t("carte.toolbar.uploadMap")}</button>
+              <button type="button" class="carte-btn carte-btn-gm carte-btn-danger" data-action="carte-clear">${t("carte.toolbar.clear")}</button>
+            </div>
+            <div id="excalidraw-container" class="excalidraw-container"></div>
           </section>
 
           <section class="panel" data-panel="combat-gm" hidden>

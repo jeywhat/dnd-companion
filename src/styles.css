@@ -3099,3 +3099,85 @@ body:has(#dice-box.dice-box--active) [data-initiative-modal] .initiative-modal-b
 @media (max-width: 500px) {
   .combat-tracker-panel { display: none; }
 }
+
+/* ── Carte (Excalidraw) ─────────────────────────────────────────────────────── */
+
+.carte-panel {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 160px);
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.carte-panel[hidden] {
+  display: none !important;
+}
+
+.carte-toolbar {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-card, #1a1a2e);
+  border-bottom: 1px solid var(--border, #2a2a4a);
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.carte-btn {
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--border, #2a2a4a);
+  border-radius: 0.5rem;
+  background: var(--bg-elevated, #1e1e3a);
+  color: var(--text, #e0e0e0);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.carte-btn:hover {
+  background: var(--primary-faint, #2d2066);
+  border-color: var(--primary, #7c3aed);
+}
+
+.carte-btn-danger:hover {
+  background: #3a1a1a;
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.excalidraw-container {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+.excalidraw-container .excalidraw {
+  height: 100%;
+  width: 100%;
+}
+
+/* Dark theme overrides for Excalidraw */
+.excalidraw-container .excalidraw .layer-ui__wrapper {
+  z-index: 5;
+}
+
+/* Hide the Excalidraw main menu extra items */
+.excalidraw-container .excalidraw .main-menu-trigger {
+  opacity: 0.7;
+}
+
+/* Mobile carte adjustments */
+@media (max-width: 600px) {
+  .carte-panel {
+    height: calc(100vh - 130px);
+  }
+  .carte-toolbar {
+    flex-wrap: wrap;
+    padding: 0.35rem 0.5rem;
+  }
+  .carte-btn {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.5rem;
+  }
+}

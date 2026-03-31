@@ -396,4 +396,18 @@ export const en = {
   "error.monsterNameRequired"  : "Monster name is required.",
   "error.notInRoom"            : "You are not in a room.",
   "confirm.endCombat"          : "End combat? The initiative order will be cleared.",
+
+  // ── Carte (Map) ─────────────────────────────────────────────────────────────
+  "nav.carte"                  : "Map",
+  "carte.title"                : "Game Map",
+  "carte.subtitle"             : "Collaborative whiteboard — draw maps and move your tokens.",
+  "carte.toolbar.addToken"     : "🎯 My token",
+  "carte.toolbar.uploadMap"    : "🗺️ Load map",
+  "carte.toolbar.clear"        : "🗑️ Clear",
+  "carte.token.default"        : "Adventurer",
+  "carte.status.tokenAdded"    : "{name}'s token added to the map.",
+  "carte.status.mapUploaded"   : "Map \"{name}\" loaded.",
+  "carte.status.cleared"       : "Map cleared.",
+  "carte.status.gmOnly"        : "Only the GM can perform this action.",
+  "carte.empty"                : "Open the Map tab to load the collaborative whiteboard.",
 };

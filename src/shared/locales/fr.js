@@ -396,4 +396,18 @@ export const fr = {
   "error.monsterNameRequired"  : "Le nom du monstre est obligatoire.",
   "error.notInRoom"            : "Vous n'êtes pas dans une salle.",
   "confirm.endCombat"          : "Terminer le combat ? L'ordre d'initiative sera effacé.",
+
+  // ── Carte (Map) ─────────────────────────────────────────────────────────────
+  "nav.carte"                  : "Carte",
+  "carte.title"                : "Carte de jeu",
+  "carte.subtitle"             : "Whiteboard collaboratif — dessinez cartes et déplacez vos tokens.",
+  "carte.toolbar.addToken"     : "🎯 Mon token",
+  "carte.toolbar.uploadMap"    : "🗺️ Charger carte",
+  "carte.toolbar.clear"        : "🗑️ Effacer",
+  "carte.token.default"        : "Aventurier",
+  "carte.status.tokenAdded"    : "Token de {name} ajouté à la carte.",
+  "carte.status.mapUploaded"   : "Carte \"{name}\" chargée.",
+  "carte.status.cleared"       : "Carte effacée.",
+  "carte.status.gmOnly"        : "Seul le MJ peut effectuer cette action.",
+  "carte.empty"                : "Ouvrez l'onglet Carte pour charger le whiteboard collaboratif.",
 };

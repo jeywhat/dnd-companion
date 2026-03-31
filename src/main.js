@@ -4,6 +4,7 @@ import { getAppTemplate } from "./app/shell.js";
 import { bindEvents } from "./app/events.js";
 import { applyWebhookFromUrl, reconnectSync } from "./features/settings/handler.js";
 import { reconnectRoom } from "./features/room/handler.js";
+import { reconnectCarteSync } from "./features/carte/renderer.js";
 import { preloadDiceBox } from "./adapters/dice-animation.js";
 
 const appElement = document.querySelector("#app");
@@ -21,6 +22,7 @@ bindEvents(appElement);
 render(true);
 reconnectSync();
 reconnectRoom();
+reconnectCarteSync();
 preloadDiceBox();
 
 const { flush } = getCleanupHandlers();
