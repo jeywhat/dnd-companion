@@ -3150,14 +3150,15 @@ body:has(#dice-box.dice-box--active) [data-initiative-modal] .initiative-modal-b
   flex: 1;
   min-height: 0;
   position: relative;
+  width: 100%;
+  height: 100%;
 }
 
 .excalidraw-container .excalidraw {
-  height: 100%;
-  width: 100%;
+  height: 100% !important;
+  width: 100% !important;
 }
 
-/* Dark theme overrides for Excalidraw */
 .excalidraw-container .excalidraw .layer-ui__wrapper {
   z-index: 5;
 }

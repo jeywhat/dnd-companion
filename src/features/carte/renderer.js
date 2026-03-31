@@ -20,9 +20,13 @@ import { t } from "../../shared/i18n.js";
 
 let _root = null;
 let _excalidrawAPI = null;
+let _mounting = false;
 let _mounted = false;
 let _remoteElements = {};
-let _suppressOnChange = false;
+// Counter-based suppression: >0 means suppress. Avoids requestAnimationFrame races.
+let _suppressDepth = 0;
+let _CaptureUpdateAction = null;
+let _convertToExcalidrawElements = null;
 
 // ─── Excalidraw API ref ──────────────────────────────────────────────────────
 
@@ -36,22 +40,10 @@ function isGM() {
   return state.room?.role === "gm";
 }
 
-function getPlayerOwnedIds() {
-  if (!_excalidrawAPI) return new Set();
-  const elements = _excalidrawAPI.getSceneElements();
-  const ids = new Set();
-  for (const el of elements) {
-    if (el.customData?.ownerId === PLAYER_ID) {
-      ids.add(el.id);
-    }
-  }
-  return ids;
-}
-
 // ─── onChange handler ────────────────────────────────────────────────────────
 
-function handleChange(elements, appState) {
-  if (_suppressOnChange) return;
+function handleChange(elements, _appState, _files) {
+  if (_suppressDepth > 0) return;
   if (!state.settings.firebaseUrl || !state.settings.syncRoom) return;
 
   const currentMap = new Map();
@@ -63,22 +55,21 @@ function handleChange(elements, appState) {
   for (const el of elements) {
     const remote = _remoteElements[el.id];
     if (el.isDeleted) {
-      if (remote && !remote.isDeleted) {
-        if (isGM()) {
-          deletedIds.push(el.id);
-        }
+      if (remote && !remote.isDeleted && isGM()) {
+        deletedIds.push(el.id);
       }
       continue;
     }
 
+    // Publish if element is new or changed vs. remote
     if (!remote || el.version > (remote.version || 0)) {
+      // GM can publish anything; player can publish owned tokens
       if (isGM() || el.customData?.ownerId === PLAYER_ID) {
         changedElements.push(el);
       }
     }
   }
 
-  // Detect remote elements removed locally (GM only)
   if (isGM()) {
     for (const id of Object.keys(_remoteElements)) {
       if (!currentMap.has(id) && _remoteElements[id] && !_remoteElements[id].isDeleted) {
@@ -104,6 +95,22 @@ function handleChange(elements, appState) {
   }
 }
 
+// ─── Suppressed updateScene wrapper ──────────────────────────────────────────
+
+function updateSceneSuppressed(sceneData) {
+  if (!_excalidrawAPI) return;
+  _suppressDepth++;
+  try {
+    _excalidrawAPI.updateScene({
+      ...sceneData,
+      captureUpdate: _CaptureUpdateAction?.NEVER,
+    });
+  } finally {
+    // Defer unsuppression so React 18 batched onChange callbacks are still caught
+    Promise.resolve().then(() => { _suppressDepth--; });
+  }
+}
+
 // ─── Remote update handler ───────────────────────────────────────────────────
 
 function handleRemoteUpdate(type, data) {
@@ -112,17 +119,14 @@ function handleRemoteUpdate(type, data) {
   if (type === "snapshot") {
     _remoteElements = data || {};
     const elements = Object.values(_remoteElements).filter((el) => el && !el.isDeleted);
-    _suppressOnChange = true;
-    _excalidrawAPI.updateScene({ elements });
-    requestAnimationFrame(() => { _suppressOnChange = false; });
+    updateSceneSuppressed({ elements });
     return;
   }
 
-  // "put" or "patch" — partial update
-  const incoming = data;
+  // "put" or "patch" — incremental update
   let needsUpdate = false;
 
-  for (const [id, el] of Object.entries(incoming)) {
+  for (const [id, el] of Object.entries(data)) {
     if (el === null) {
       delete _remoteElements[id];
       needsUpdate = true;
@@ -139,42 +143,39 @@ function handleRemoteUpdate(type, data) {
   if (needsUpdate) {
     const currentElements = _excalidrawAPI.getSceneElements();
     const merged = mergeElements(currentElements, _remoteElements);
-    _suppressOnChange = true;
-    _excalidrawAPI.updateScene({ elements: merged });
-    requestAnimationFrame(() => { _suppressOnChange = false; });
+    updateSceneSuppressed({ elements: merged });
   }
 }
 
 /**
  * Merge local elements with remote state.
- * Remote wins for elements we don't own. Local wins for elements we own.
+ * Remote wins except for elements we own (newer local version kept).
+ * ALL local-only elements are preserved (drawings in progress).
  */
 function mergeElements(localElements, remoteMap) {
   const merged = new Map();
-  const localMap = new Map();
-  for (const el of localElements) localMap.set(el.id, el);
 
-  // Add all remote elements
+  // 1. Add all remote elements
   for (const [id, el] of Object.entries(remoteMap)) {
     if (!el || el.isDeleted) continue;
-    const local = localMap.get(id);
-    if (local && (isGM() || local.customData?.ownerId === PLAYER_ID)) {
-      // We own this element — keep our local version if it's newer
-      if (local.version >= (el.version || 0)) {
-        merged.set(id, local);
-        continue;
-      }
-    }
     merged.set(id, el);
   }
 
-  // Keep local-only elements that aren't in remote (newly created, GM only)
+  // 2. Overlay local elements — keep local version when we own it or it's local-only
   for (const el of localElements) {
-    if (!merged.has(el.id) && !el.isDeleted) {
-      if (isGM() || el.customData?.ownerId === PLAYER_ID) {
+    if (el.isDeleted) continue;
+    const remote = merged.get(el.id);
+
+    if (!remote) {
+      // Local-only element (drawing in progress, not yet synced) — always keep
+      merged.set(el.id, el);
+    } else if (isGM() || el.customData?.ownerId === PLAYER_ID) {
+      // We own this element — keep local if same or newer version
+      if (el.version >= (remote.version || 0)) {
         merged.set(el.id, el);
       }
     }
+    // else: remote wins (someone else's element)
   }
 
   return Array.from(merged.values());
@@ -184,50 +185,66 @@ function mergeElements(localElements, remoteMap) {
 
 async function mountExcalidraw() {
   const container = document.getElementById("excalidraw-container");
-  if (!container || _mounted) return;
+  if (!container || _mounting || _mounted) return;
 
-  const { Excalidraw } = await import("@excalidraw/excalidraw");
+  _mounting = true;
 
-  _root = createRoot(container);
+  try {
+    const excalidrawModule = await import("@excalidraw/excalidraw");
+    const { Excalidraw, CaptureUpdateAction, convertToExcalidrawElements } = excalidrawModule;
+    _CaptureUpdateAction = CaptureUpdateAction;
+    _convertToExcalidrawElements = convertToExcalidrawElements;
 
-  const props = {
-    excalidrawAPI: (api) => { _excalidrawAPI = api; },
-    onChange: handleChange,
-    theme: "dark",
-    gridModeEnabled: true,
-    zenModeEnabled: false,
-    viewModeEnabled: false,
-    UIOptions: {
-      canvasActions: {
-        loadScene: isGM(),
-        clearCanvas: isGM(),
-        export: { saveFileToDisk: true },
-        saveAsImage: true,
+    // Guard against container being removed during async import
+    if (!document.getElementById("excalidraw-container")) {
+      _mounting = false;
+      return;
+    }
+
+    _root = createRoot(container);
+
+    const props = {
+      excalidrawAPI: (api) => { _excalidrawAPI = api; },
+      onChange: handleChange,
+      theme: "dark",
+      gridModeEnabled: true,
+      zenModeEnabled: false,
+      viewModeEnabled: false,
+      UIOptions: {
+        canvasActions: {
+          loadScene: isGM(),
+          clearCanvas: isGM(),
+          export: { saveFileToDisk: true },
+          saveAsImage: true,
+        },
       },
-    },
-    langCode: state.ui?.locale === "en" ? "en" : "fr-FR",
-  };
+      langCode: state.ui?.locale === "en" ? "en" : "fr-FR",
+    };
 
-  _root.render(React.createElement(Excalidraw, props));
-  _mounted = true;
+    _root.render(React.createElement(Excalidraw, props));
+    _mounted = true;
 
-  // Connect Firebase sync
-  if (state.settings.firebaseUrl && state.settings.syncRoom) {
-    connectCarteSync({
-      firebaseUrl: state.settings.firebaseUrl,
-      roomId: state.settings.syncRoom,
-      onRemoteUpdate: handleRemoteUpdate,
-    });
+    // Connect Firebase sync
+    if (state.settings.firebaseUrl && state.settings.syncRoom) {
+      connectCarteSync({
+        firebaseUrl: state.settings.firebaseUrl,
+        roomId: state.settings.syncRoom,
+        onRemoteUpdate: handleRemoteUpdate,
+      });
+    }
+
+    console.info("[Carte] Excalidraw monté");
+  } catch (err) {
+    console.error("[Carte] Échec du montage Excalidraw :", err);
+  } finally {
+    _mounting = false;
   }
-
-  console.info("[Carte] Excalidraw monté");
 }
 
 // ─── Public API ──────────────────────────────────────────────────────────────
 
 export function renderCarte() {
-  const isCarteTab = state.ui.activeTab === "carte";
-  if (isCarteTab && !_mounted) {
+  if (state.ui.activeTab === "carte" && !_mounted && !_mounting) {
     mountExcalidraw();
   }
 }
@@ -245,21 +262,24 @@ export function reconnectCarteSync() {
 }
 
 /**
- * Add a player token at a given position.
+ * Add a player token at the center of the viewport.
  */
 export function addPlayerToken({ name, color, x = 200, y = 200 }) {
   if (!_excalidrawAPI) return null;
 
+  const label = name || t("carte.token.default");
+  const fillColor = color || "#7c3aed";
   const tokenId = `token-${PLAYER_ID}-${Date.now()}`;
-  const token = {
+
+  const raw = [{
     id: tokenId,
     type: "ellipse",
     x,
     y,
     width: 60,
     height: 60,
-    strokeColor: color || "#7c3aed",
-    backgroundColor: color || "#7c3aed",
+    strokeColor: fillColor,
+    backgroundColor: fillColor,
     fillStyle: "solid",
     roughness: 0,
     opacity: 100,
@@ -267,13 +287,17 @@ export function addPlayerToken({ name, color, x = 200, y = 200 }) {
     customData: {
       ownerId: PLAYER_ID,
       type: "player-token",
-      label: name || t("carte.token.default"),
+      label,
     },
-  };
+  }];
+
+  const elements = _convertToExcalidrawElements
+    ? _convertToExcalidrawElements(raw)
+    : raw;
 
   const currentElements = _excalidrawAPI.getSceneElements();
   _excalidrawAPI.updateScene({
-    elements: [...currentElements, token],
+    elements: [...currentElements, ...elements],
   });
 
   return tokenId;
@@ -287,28 +311,38 @@ export function addMapImage({ dataUrl, width, height, x = 0, y = 0 }) {
 
   const fileId = `map-${Date.now()}`;
 
+  // Register the file with Excalidraw's internal file store
   _excalidrawAPI.addFiles([{
     id: fileId,
     dataURL: dataUrl,
-    mimeType: "image/png",
+    mimeType: dataUrl.startsWith("data:image/png") ? "image/png"
+            : dataUrl.startsWith("data:image/jpeg") ? "image/jpeg"
+            : dataUrl.startsWith("data:image/webp") ? "image/webp"
+            : "image/png",
     created: Date.now(),
   }]);
 
-  const imageElement = {
+  const raw = [{
     id: `img-${fileId}`,
     type: "image",
     x,
     y,
     width: width || 800,
     height: height || 600,
+    status: "saved",
     fileId,
+    scale: [1, 1],
     locked: true,
     customData: { type: "map", ownerId: PLAYER_ID },
-  };
+  }];
+
+  const elements = _convertToExcalidrawElements
+    ? _convertToExcalidrawElements(raw)
+    : raw;
 
   const currentElements = _excalidrawAPI.getSceneElements();
   _excalidrawAPI.updateScene({
-    elements: [imageElement, ...currentElements],
+    elements: [...elements, ...currentElements],
   });
 }
 
@@ -320,5 +354,6 @@ export function destroyCarte() {
   }
   _excalidrawAPI = null;
   _mounted = false;
+  _mounting = false;
   _remoteElements = {};
 }
