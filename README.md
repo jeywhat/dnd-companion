@@ -69,8 +69,18 @@ No account required. No pay-to-play. Just open and roll.
 - **Roll Broadcasting** — Every d20 roll appears on all connected screens the moment it's thrown
 - **Animated Remote Popups** — Slot-machine number animation in SVG die shapes, stacked per player
 - **Party State Sync** — HP, avatar, class, and level synced in real time to the party panel
+- **Audio Sync** — YouTube music playback state (video, position, volume) synced from GM to all players in real time
 - **Presence Heartbeat** — 30-second keep-alive publishes keep `updatedAt` fresh; presence dots reflect live connection status
 - **Auto-reconnect** — Seamlessly reconnects if Firebase connection drops
+
+### 🎵 Music & Soundboard (YouTube Sync)
+- **GM-controlled YouTube Player** — Game Master loads YouTube videos/playlists; all connected players sync automatically
+- **Transport Controls** — Play, pause, stop, seek bar, and volume — GM only
+- **URL or Video ID** — Paste any YouTube URL or bare video ID to load
+- **RPG Ambiance Presets** — 8 one-click ambient tracks (tavern, forest, battle, dungeon, campfire, etc.)
+- **Soundboard** — 6 short SFX buttons (sword, explosion, thunder, door, magic, scream) broadcast to all players
+- **Auto-sync** — Position correction every 5s; drift tolerance of 3s to avoid jitter
+- **Player View** — Players see the player and hear the music; controls are hidden (GM only)
 
 ### ⚔️ Initiative Tracker (GM)
 - **Trigger Initiative** — GM sends an initiative request to all players with one click
@@ -252,6 +262,8 @@ Firebase Realtime Database is used for **zero-infrastructure multiplayer sync** 
 ├── _kicks/        → { [sid]: timestamp }                  (kick/ban signals)
 ├── _combat/       → { state, round, currentTurn,          (initiative tracker)
 │                       panelVisible, initiatives: { … } }
+├── audio/         → { videoId, position, isPlaying,       (YouTube sync)
+│                       volume, sfx: { … } }
 └── {sessionId}/   → roll payload                          (dice roll events)
     party/
     └── {sessionId}/ → { name, className, level, currentHp, hpMax, avatar, … }
@@ -383,6 +395,7 @@ dnd-companion/
 │   │   └── dice.js                    # Roll validation with crypto RNG
 │   ├── adapters/                      # External service wrappers (Ports)
 │   │   ├── anti-cheat.js              # Session baseline & integrity check
+│   │   ├── audio-sync.js              # YouTube audio SSE & REST sync
 │   │   ├── combat-sync.js             # Initiative tracker SSE & REST ops
 │   │   ├── dice-animation.js          # @3d-dice/dice-box wrapper
 │   │   ├── discord.js                 # Webhook payloads & sending
@@ -410,6 +423,9 @@ dnd-companion/
 │   │   ├── party/
 │   │   │   ├── handler.js             # Party SSE connection, member dedup
 │   │   │   └── renderer.js            # Left fixed party panel
+│   │   ├── audio/
+│   │   │   ├── handler.js             # Play/pause, load video, seek, SFX, volume
+│   │   │   └── renderer.js            # YouTube IFrame mount, Firebase sync, controls
 │   │   ├── room/
 │   │   │   ├── handler.js             # Create/join/leave/dissolve, kick/ban
 │   │   │   └── renderer.js            # Room tab: no-room form, active room view

@@ -396,4 +396,22 @@ export const fr = {
   "error.monsterNameRequired"  : "Le nom du monstre est obligatoire.",
   "error.notInRoom"            : "Vous n'êtes pas dans une salle.",
   "confirm.endCombat"          : "Terminer le combat ? L'ordre d'initiative sera effacé.",
+
+  // ── Audio (YouTube Sync) ────────────────────────────────────────────────────
+  "nav.audio"                  : "Audio",
+  "audio.title"                : "Ambiance musicale",
+  "audio.subtitle"             : "YouTube synchronisé — le MJ contrôle la musique pour tous.",
+  "audio.urlPlaceholder"       : "URL YouTube ou ID vidéo…",
+  "audio.loadButton"           : "▶ Charger",
+  "audio.nothingPlaying"       : "Aucune musique en cours",
+  "audio.volume"               : "Volume",
+  "audio.presets.title"        : "🎶 Ambiances JDR",
+  "audio.soundboard.title"     : "🔊 Soundboard",
+  "audio.status.loaded"        : "Musique chargée.",
+  "audio.status.stopped"       : "Musique arrêtée.",
+  "audio.status.invalidUrl"    : "URL YouTube invalide.",
+  "audio.status.gmOnly"        : "Seul le MJ peut contrôler la musique.",
+  "audio.status.sfxTriggered"  : "SFX \"{name}\" déclenché !",
+  "audio.gmHint"               : "Seul le MJ voit ces contrôles.",
+  "audio.playerHint"           : "La musique est synchronisée par le MJ.",
 };

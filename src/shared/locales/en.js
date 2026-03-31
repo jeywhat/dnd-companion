@@ -396,4 +396,22 @@ export const en = {
   "error.monsterNameRequired"  : "Monster name is required.",
   "error.notInRoom"            : "You are not in a room.",
   "confirm.endCombat"          : "End combat? The initiative order will be cleared.",
+
+  // ── Audio (YouTube Sync) ────────────────────────────────────────────────────
+  "nav.audio"                  : "Audio",
+  "audio.title"                : "Music Ambiance",
+  "audio.subtitle"             : "Synced YouTube — the GM controls music for everyone.",
+  "audio.urlPlaceholder"       : "YouTube URL or video ID…",
+  "audio.loadButton"           : "▶ Load",
+  "audio.nothingPlaying"       : "Nothing playing",
+  "audio.volume"               : "Volume",
+  "audio.presets.title"        : "🎶 RPG Ambiances",
+  "audio.soundboard.title"     : "🔊 Soundboard",
+  "audio.status.loaded"        : "Music loaded.",
+  "audio.status.stopped"       : "Music stopped.",
+  "audio.status.invalidUrl"    : "Invalid YouTube URL.",
+  "audio.status.gmOnly"        : "Only the GM can control the music.",
+  "audio.status.sfxTriggered"  : "SFX \"{name}\" triggered!",
+  "audio.gmHint"               : "Only the GM sees these controls.",
+  "audio.playerHint"           : "Music is synced by the GM.",
 };

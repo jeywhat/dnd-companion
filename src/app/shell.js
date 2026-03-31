@@ -65,6 +65,10 @@ export function getAppTemplate() {
           <span class="nav-icon" aria-hidden="true">📜</span>
           <span class="nav-label">${t("nav.character")}</span>
         </button>
+        <button type="button" class="nav-button" data-action="switch-tab" data-tab="audio">
+          <span class="nav-icon" aria-hidden="true">🎵</span>
+          <span class="nav-label">${t("nav.audio")}</span>
+        </button>
         <button type="button" class="nav-button" data-action="switch-tab" data-tab="room">
           <span class="nav-icon" aria-hidden="true">🏰</span>
           <span class="nav-label">${t("nav.room")}</span>
@@ -553,6 +557,66 @@ export function getAppTemplate() {
                 </div>
               </div>
               <div data-session-summary></div>
+            </article>
+          </section>
+
+          <section class="panel" data-panel="audio" hidden>
+            <article class="card">
+              <div class="section-heading">
+                <div>
+                  <h2>${t("audio.title")}</h2>
+                  <p class="muted">${t("audio.subtitle")}</p>
+                </div>
+              </div>
+
+              <div class="audio-player-wrap">
+                <div id="yt-player-slot" class="yt-player-slot"></div>
+                <p class="audio-now-playing muted" data-audio-now-playing>${t("audio.nothingPlaying")}</p>
+              </div>
+
+              <div class="audio-controls audio-gm-only" hidden>
+                <div class="audio-transport">
+                  <button type="button" class="audio-btn" data-action="audio-playpause">▶️</button>
+                  <button type="button" class="audio-btn" data-action="audio-stop">⏹️</button>
+                  <input type="range" id="audio-seekbar" class="audio-seekbar" min="0" max="100" value="0" step="0.5">
+                </div>
+                <div class="audio-volume-row">
+                  <span class="audio-volume-label">${t("audio.volume")}</span>
+                  <input type="range" id="audio-volume" class="audio-volume" min="0" max="100" value="80" step="1">
+                </div>
+                <div class="audio-url-row">
+                  <input type="text" id="audio-url-input" class="audio-url-input" placeholder="${t("audio.urlPlaceholder")}">
+                  <button type="button" class="audio-btn audio-load-btn" data-action="audio-load">${t("audio.loadButton")}</button>
+                </div>
+              </div>
+
+              <div class="audio-gm-only" hidden>
+                <div class="section-heading"><h3>${t("audio.presets.title")}</h3></div>
+                <div class="audio-preset-grid">
+                  <button type="button" class="audio-preset-btn" data-action="audio-preset" data-preset-id="jfKfPfyJRdk">🏰 Medieval Tavern</button>
+                  <button type="button" class="audio-preset-btn" data-action="audio-preset" data-preset-id="YRLbg3mw1qY">🌲 Forest Ambiance</button>
+                  <button type="button" class="audio-preset-btn" data-action="audio-preset" data-preset-id="PYGOEn9Twto">⚔️ Epic Battle</button>
+                  <button type="button" class="audio-preset-btn" data-action="audio-preset" data-preset-id="4PN5JJDh78I">🕯️ Dark Dungeon</button>
+                  <button type="button" class="audio-preset-btn" data-action="audio-preset" data-preset-id="TzOhSHCBpno">🏔️ Mountain Wind</button>
+                  <button type="button" class="audio-preset-btn" data-action="audio-preset" data-preset-id="KnHLFLJZx_4">🌊 Ocean Waves</button>
+                  <button type="button" class="audio-preset-btn" data-action="audio-preset" data-preset-id="0SimDuu4BPo">🔥 Campfire</button>
+                  <button type="button" class="audio-preset-btn" data-action="audio-preset" data-preset-id="DSGs00bLUbU">🌙 Mysterious Night</button>
+                </div>
+              </div>
+
+              <div class="audio-gm-only" hidden>
+                <div class="section-heading"><h3>${t("audio.soundboard.title")}</h3></div>
+                <div class="audio-sfx-grid">
+                  <button type="button" class="audio-sfx-btn" data-action="audio-sfx" data-sfx-id="iuYxGtuBSgk" data-sfx-label="Sword">🗡️ Sword</button>
+                  <button type="button" class="audio-sfx-btn" data-action="audio-sfx" data-sfx-id="MqtOmKSmyDI" data-sfx-label="Explosion">💥 Explosion</button>
+                  <button type="button" class="audio-sfx-btn" data-action="audio-sfx" data-sfx-id="mJVF7wKKA9Q" data-sfx-label="Thunder">⚡ Thunder</button>
+                  <button type="button" class="audio-sfx-btn" data-action="audio-sfx" data-sfx-id="Fvg5RTrFLfI" data-sfx-label="Door">🚪 Door</button>
+                  <button type="button" class="audio-sfx-btn" data-action="audio-sfx" data-sfx-id="E_d-bzJsGSQ" data-sfx-label="Magic">✨ Magic</button>
+                  <button type="button" class="audio-sfx-btn" data-action="audio-sfx" data-sfx-id="Vpquo-_NEUI" data-sfx-label="Scream">😱 Scream</button>
+                </div>
+              </div>
+
+              <p class="audio-player-hint muted" data-audio-player-hint hidden>${t("audio.playerHint")}</p>
             </article>
           </section>
 
