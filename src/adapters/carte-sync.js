@@ -16,6 +16,13 @@ let _carteEventSource = null;
 let _onCarteUpdate = null;
 const _debounceTimers = new Map();
 
+/** Create an AbortSignal that times out after `ms` milliseconds. */
+function _timeoutSignal(ms = 8000) {
+  const ctrl = new AbortController();
+  setTimeout(() => ctrl.abort(), ms);
+  return ctrl.signal;
+}
+
 function buildCarteBase(firebaseUrl, roomId) {
   return `${buildBase(firebaseUrl, roomId)}/carte`;
 }
@@ -77,11 +84,19 @@ export async function publishToken({ firebaseUrl, roomId, token }) {
 
   console.info("[CarteSync] 📤 Publish token", token.id);
 
-  await fetch(url, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body,
-  }).catch((err) => console.warn("[CarteSync] publish token error:", err));
+  try {
+    const resp = await fetch(url, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body,
+      signal: _timeoutSignal(8000),
+    });
+    if (!resp.ok) {
+      console.warn("[CarteSync] ❌ Token publish HTTP", resp.status);
+    }
+  } catch (err) {
+    console.warn("[CarteSync] ❌ Token publish failed:", err.name === "AbortError" ? "timeout" : err);
+  }
 }
 
 /**
@@ -138,11 +153,16 @@ export async function publishMap({ firebaseUrl, roomId, map }) {
   const body = JSON.stringify({ ...map, updatedAt: Date.now() });
 
   console.info("[CarteSync] 📤 Publish map", map.id);
-  await fetch(url, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body,
-  }).catch((err) => console.warn("[CarteSync] publish map error:", err));
+  try {
+    await fetch(url, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body,
+      signal: _timeoutSignal(8000),
+    });
+  } catch (err) {
+    console.warn("[CarteSync] ❌ Map publish failed:", err.name === "AbortError" ? "timeout" : err);
+  }
 }
 
 export async function deleteMap({ firebaseUrl, roomId, mapId }) {

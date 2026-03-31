@@ -50,7 +50,7 @@ export async function removePartyMember({ firebaseUrl, code, sid }) {
   await fetch(url, { method: "DELETE" }).catch(() => {});
 }
 
-export async function cleanupStalePartyMembers({ firebaseUrl, code, maxAgeMs = 300_000 }) {
+export async function cleanupStalePartyMembers({ firebaseUrl, code, maxAgeMs = 600_000 }) {
   try {
     const url = `${buildBase(firebaseUrl, code)}/party.json`;
     const res = await fetch(url);

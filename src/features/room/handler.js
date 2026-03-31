@@ -23,24 +23,41 @@ import { t } from "../../shared/i18n.js";
 
 let _heartbeatId  = null;
 let _renderTickId = null;
+let _visibilityHandler = null;
 
 function startHeartbeat() {
   stopHeartbeat();
-  _heartbeatId = window.setInterval(() => {
+
+  const tick = () => {
     const { firebaseUrl, syncRoom } = state.settings;
     if (!firebaseUrl || !syncRoom) return;
     queuePartySync();
     if (state.room.role === "gm") {
       cleanupStalePartyMembers({ firebaseUrl, code: syncRoom }).catch(() => {});
     }
-  }, 30_000);
-  // Re-render periodically to refresh presence dots without any user action
+  };
+
+  _heartbeatId = window.setInterval(tick, 30_000);
   _renderTickId = window.setInterval(() => triggerRender(false), 30_000);
+
+  // When tab becomes visible again, immediately re-sync presence
+  // (browsers throttle setInterval in background tabs → player looks stale)
+  _visibilityHandler = () => {
+    if (document.visibilityState === "visible" && state.settings.syncRoom) {
+      console.info("[Room] 👁️ Tab visible → immediate heartbeat");
+      tick();
+    }
+  };
+  document.addEventListener("visibilitychange", _visibilityHandler);
 }
 
 function stopHeartbeat() {
   window.clearInterval(_heartbeatId);
   window.clearInterval(_renderTickId);
+  if (_visibilityHandler) {
+    document.removeEventListener("visibilitychange", _visibilityHandler);
+    _visibilityHandler = null;
+  }
   _heartbeatId  = null;
   _renderTickId = null;
 }

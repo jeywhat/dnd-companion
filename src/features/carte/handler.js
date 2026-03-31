@@ -89,13 +89,15 @@ export async function handleCarteAction(button) {
     canvas.requestRedraw();
 
     const { firebaseUrl, syncRoom } = state.settings;
+    console.log("[Carte] 🧙 Place my token — firebaseUrl:", !!firebaseUrl, "syncRoom:", syncRoom, "token:", token.id);
     if (firebaseUrl && syncRoom) {
       await publishToken({ firebaseUrl, roomId: syncRoom, token });
+    } else {
+      console.warn("[Carte] ⚠️ Cannot sync — no firebaseUrl or syncRoom");
     }
 
     setStatus("info", t("carte.myTokenPlaced"));
     commit(false);
-    console.log("[Carte] 🧙 My token placed:", token.id);
     return true;
   }
 
