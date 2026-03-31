@@ -80,7 +80,7 @@ export function createDefaultState() {
         9: { max: 0, used: 0 }
       }
     },
-    settings: { webhookUrl: "", firebaseUrl: "", syncRoom: "", storageBucket: "", diceColor: "#7c3aed" },
+    settings: { webhookUrl: "", firebaseUrl: "", syncRoom: "", cloudinaryCloudName: "", cloudinaryPreset: "", diceColor: "#7c3aed" },
     room: { role: null, name: "", code: "", gmSid: "" },
     sessionLock: {
       isLocked: false,

@@ -29,7 +29,8 @@ export function renderFormValues(syncInputs = true) {
     updateFieldValue(appElement, "[data-current-hp-input]", state.character.currentHp);
     updateFieldValue(appElement, "[data-setting-field='webhookUrl']", state.settings.webhookUrl ?? "");
     updateFieldValue(appElement, "[data-setting-field='firebaseUrl']", state.settings.firebaseUrl ?? "");
-    updateFieldValue(appElement, "[data-setting-field='storageBucket']", state.settings.storageBucket ?? "");
+    updateFieldValue(appElement, "[data-setting-field='cloudinaryCloudName']", state.settings.cloudinaryCloudName ?? "");
+    updateFieldValue(appElement, "[data-setting-field='cloudinaryPreset']", state.settings.cloudinaryPreset ?? "");
     updateFieldValue(appElement, "[data-setting-field='diceColor']", state.settings.diceColor ?? "#7c3aed");
 
     for (const ability of ABILITIES) {

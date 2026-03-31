@@ -13,7 +13,7 @@ import {
   audioTriggerSfx,
   audioStop,
 } from "./renderer.js";
-import { uploadToStorage, deriveStorageBucket } from "../../adapters/storage-upload.js";
+import { uploadToCloudinary } from "../../adapters/cloudinary-upload.js";
 import { t } from "../../shared/i18n.js";
 
 function isGM() {
@@ -99,7 +99,7 @@ export function handleAudioInput(target) {
 
 /**
  * Handle MP3 file selection from the hidden <input type="file">.
- * Called from events.js change handler.
+ * Uploads to Cloudinary, then loads the track via HTML5 Audio.
  */
 export async function handleMp3FileChange(fileInput) {
   const file = fileInput.files?.[0];
@@ -112,36 +112,37 @@ export async function handleMp3FileChange(fileInput) {
     return;
   }
 
-  const bucket = deriveStorageBucket(state.settings.firebaseUrl, state.settings.storageBucket);
-  if (!bucket) {
-    setStatus("error", t("audio.status.noBucket"));
+  const cloudName = state.settings.cloudinaryCloudName?.trim();
+  const preset = state.settings.cloudinaryPreset?.trim();
+  if (!cloudName || !preset) {
+    setStatus("error", t("audio.status.noCloudinary"));
     commit(false);
     return;
   }
 
-  const roomId = state.settings.syncRoom;
-  if (!roomId) return;
+  const roomId = state.settings.syncRoom || "default";
 
   const progressBar = document.getElementById("audio-upload-progress");
   const progressWrap = document.querySelector(".audio-upload-progress-wrap");
   if (progressWrap) progressWrap.hidden = false;
 
   try {
-    const storagePath = `rooms/${roomId}/audio/${Date.now()}_${file.name}`;
-    const downloadUrl = await uploadToStorage({
-      bucket,
-      path: storagePath,
+    const result = await uploadToCloudinary({
+      cloudName,
+      preset,
       file,
+      folder: `jdr/rooms/${roomId}/audio`,
+      resourceType: "auto",
       onProgress: (p) => {
         if (progressBar) progressBar.value = p * 100;
       },
     });
 
-    audioLoadMp3(downloadUrl, file.name);
-    setStatus("success", t("audio.status.mp3Loaded", { name: file.name }));
+    audioLoadMp3(result.url, result.name || file.name);
+    setStatus("success", t("audio.status.mp3Loaded", { name: result.name || file.name }));
     commit(false);
   } catch (err) {
-    console.error("[Audio] Upload failed:", err);
+    console.error("[Audio] Cloudinary upload failed:", err);
     setStatus("error", t("audio.status.uploadFailed"));
     commit(false);
   } finally {

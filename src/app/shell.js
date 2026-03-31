@@ -496,17 +496,28 @@ export function getAppTemplate() {
                   data-setting-field="firebaseUrl"
                 />
               </label>
-              <label class="field" for="storage-bucket" style="margin-top:0.6rem">
-                <span>${t("settings.sync.storageBucketLabel")}</span>
+              <label class="field" for="cloudinary-cloud-name" style="margin-top:0.6rem">
+                <span>${t("settings.sync.cloudinaryCloudNameLabel")}</span>
                 <input
-                  id="storage-bucket"
+                  id="cloudinary-cloud-name"
                   type="text"
                   autocomplete="off"
                   spellcheck="false"
-                  placeholder="${t("settings.sync.storageBucketPlaceholder")}"
-                  data-setting-field="storageBucket"
+                  placeholder="${t("settings.sync.cloudinaryCloudNamePlaceholder")}"
+                  data-setting-field="cloudinaryCloudName"
                 />
-                <span class="muted" style="font-size:0.75rem">${t("settings.sync.storageBucketNote")}</span>
+              </label>
+              <label class="field" for="cloudinary-preset" style="margin-top:0.4rem">
+                <span>${t("settings.sync.cloudinaryPresetLabel")}</span>
+                <input
+                  id="cloudinary-preset"
+                  type="text"
+                  autocomplete="off"
+                  spellcheck="false"
+                  placeholder="${t("settings.sync.cloudinaryPresetPlaceholder")}"
+                  data-setting-field="cloudinaryPreset"
+                />
+                <span class="muted" style="font-size:0.75rem">${t("settings.sync.cloudinaryNote")}</span>
               </label>
               <label class="field" for="dice-color"style="margin-top:0.6rem">
                 <span>${t("settings.sync.diceColorLabel")}</span>

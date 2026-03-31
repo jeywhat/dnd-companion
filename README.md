@@ -75,11 +75,11 @@ No account required. No pay-to-play. Just open and roll.
 
 ### 🎵 Music & Soundboard (YouTube + MP3)
 - **GM-controlled YouTube Player** — Game Master loads YouTube videos/playlists; all connected players sync automatically
-- **MP3 Upload & Playback** — Upload MP3 files to Firebase Storage; stream via HTML5 Audio with full sync
+- **MP3 Upload & Playback** — Upload MP3 files via Cloudinary (free 25 GB); stream via HTML5 Audio with full sync
 - **Dual Source** — Switch seamlessly between YouTube and MP3; active source auto-detected
 - **Transport Controls** — Play, pause, stop, seek bar, and volume — GM only
 - **URL or Video ID** — Paste any YouTube URL or bare video ID to load
-- **Upload Progress** — Visual progress bar during MP3 upload to Firebase Storage
+- **Upload Progress** — Visual progress bar during MP3 upload to Cloudinary CDN
 - **RPG Ambiance Presets** — 8 one-click ambient tracks (tavern, forest, battle, dungeon, campfire, etc.)
 - **Soundboard** — 6 short SFX buttons (sword, explosion, thunder, door, magic, scream) broadcast to all players
 - **Auto-sync** — Position correction every 5s; drift tolerance of 3s to avoid jitter
@@ -405,7 +405,7 @@ dnd-companion/
 │   │   ├── discord.js                 # Webhook payloads & sending
 │   │   ├── firebase-sync.js           # Rolls SSE listener & publisher, party sync
 │   │   ├── room-sync.js               # Room create/join/kick/ban REST ops
-│   │   ├── storage-upload.js          # Firebase Storage REST upload (for MP3)
+│   │   ├── cloudinary-upload.js        # Cloudinary unsigned upload (for MP3/images)
 │   │   └── storage.js                 # localStorage persistence
 │   ├── features/                      # Feature-Sliced Design modules
 │   │   ├── combat/
