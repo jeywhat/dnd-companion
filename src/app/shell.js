@@ -69,6 +69,10 @@ export function getAppTemplate() {
           <span class="nav-icon" aria-hidden="true">🏰</span>
           <span class="nav-label">${t("nav.room")}</span>
         </button>
+        <button type="button" class="nav-button" data-action="switch-tab" data-tab="carte">
+          <span class="nav-icon" aria-hidden="true">🗺️</span>
+          <span class="nav-label">${t("nav.carte")}</span>
+        </button>
         <button type="button" class="nav-button" data-action="switch-tab" data-tab="settings">
           <span class="nav-icon" aria-hidden="true">⚙️</span>
           <span class="nav-label">${t("nav.settings")}</span>
@@ -554,6 +558,9 @@ export function getAppTemplate() {
               </div>
               <div data-session-summary></div>
             </article>
+          </section>
+
+          <section class="panel" data-panel="carte" hidden>
           </section>
 
           <section class="panel" data-panel="combat-gm" hidden>

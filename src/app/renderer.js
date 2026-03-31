@@ -6,6 +6,7 @@ import { renderFormValues } from "../features/character/renderer.js";
 import { renderSessionSummary } from "../features/settings/renderer.js";
 import { renderParty } from "../features/party/renderer.js";
 import { renderRoom } from "../features/room/renderer.js";
+import { renderCarte } from "../features/carte/renderer.js";
 
 export function render(syncInputs = true) {
   renderAbilityDashboard();
@@ -19,5 +20,6 @@ export function render(syncInputs = true) {
   renderFormValues(syncInputs);
   renderParty();
   renderRoom();
+  renderCarte();
   renderCombatTracker();
 }

@@ -1,0 +1,253 @@
+/* ── Carte (Map/Whiteboard) Feature Styles ──────────────────────────────────── */
+
+.carte-container {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 140px);
+  height: calc(100dvh - 140px);
+  overflow: hidden;
+  position: relative;
+}
+
+/* ── Toolbar ─────────────────────────────────────────────────────────────────── */
+
+.carte-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(4, 6, 14, 0.8);
+  border-bottom: 1px solid rgba(165, 180, 252, 0.1);
+  backdrop-filter: blur(12px);
+  flex-shrink: 0;
+}
+
+.carte-toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0 0.25rem;
+  border-right: 1px solid rgba(165, 180, 252, 0.1);
+}
+
+.carte-toolbar-group:last-of-type {
+  border-right: none;
+}
+
+.carte-toolbar-info {
+  margin-left: auto;
+}
+
+.carte-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid rgba(165, 180, 252, 0.15);
+  border-radius: 6px;
+  background: rgba(30, 33, 48, 0.7);
+  color: rgba(248, 250, 252, 0.8);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease, transform 100ms ease;
+}
+
+.carte-btn:hover {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+.carte-btn:active {
+  transform: scale(0.95);
+}
+
+.carte-btn--danger {
+  border-color: rgba(239, 68, 68, 0.3);
+  color: rgba(239, 68, 68, 0.85);
+  font-size: 0.75rem;
+}
+
+.carte-btn--danger:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.carte-drop-hint {
+  font-size: 0.72rem;
+  color: rgba(139, 92, 246, 0.6);
+  white-space: nowrap;
+}
+
+.carte-coords {
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: rgba(248, 250, 252, 0.5);
+  min-width: 100px;
+  text-align: right;
+}
+
+/* ── Canvas wrapper ──────────────────────────────────────────────────────────── */
+
+.carte-canvas-wrap {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: #0f1118;
+}
+
+.carte-canvas-wrap canvas {
+  display: block;
+  touch-action: none;
+}
+
+/* ── Token dock (bottom overlay) ─────────────────────────────────────────────── */
+
+.carte-dock {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(4, 6, 14, 0.85);
+  border-top: 1px solid rgba(165, 180, 252, 0.1);
+  backdrop-filter: blur(12px);
+  z-index: 10;
+  min-height: 44px;
+}
+
+.carte-dock-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid rgba(165, 180, 252, 0.15);
+  border-radius: 8px;
+  background: rgba(30, 33, 48, 0.8);
+  color: rgba(248, 250, 252, 0.85);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
+  white-space: nowrap;
+}
+
+.carte-dock-btn:hover {
+  background: rgba(139, 92, 246, 0.25);
+  border-color: rgba(139, 92, 246, 0.5);
+}
+
+.carte-dock-btn--place {
+  border-color: rgba(34, 197, 94, 0.4);
+  background: rgba(34, 197, 94, 0.12);
+}
+
+.carte-dock-btn--place:hover {
+  background: rgba(34, 197, 94, 0.25);
+  border-color: rgba(34, 197, 94, 0.6);
+}
+
+.carte-dock-btn--locate {
+  border-color: rgba(56, 189, 248, 0.3);
+}
+
+.carte-dock-btn--locate:hover {
+  border-color: rgba(56, 189, 248, 0.6);
+  background: rgba(56, 189, 248, 0.15);
+}
+
+.carte-dock-btn--delete {
+  min-width: 36px;
+  min-height: 36px;
+  justify-content: center;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.carte-dock-btn--delete:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: rgba(239, 68, 68, 0.6);
+}
+
+/* ── Selection info ──────────────────────────────────────────────────────────── */
+
+.carte-dock-selection {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.carte-dock-sel-info {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: rgba(248, 250, 252, 0.8);
+}
+
+.carte-dock-sel-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.carte-dock-sel-dot--player {
+  background: rgba(34, 197, 94, 0.9);
+  box-shadow: 0 0 6px rgba(0, 255, 136, 0.5);
+}
+
+.carte-dock-sel-dot--monster {
+  background: rgba(239, 68, 68, 0.9);
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
+}
+
+.carte-dock-sel-dot--npc {
+  background: rgba(56, 189, 248, 0.9);
+  box-shadow: 0 0 6px rgba(56, 189, 248, 0.5);
+}
+
+.carte-dock-sel-type {
+  color: rgba(248, 250, 252, 0.45);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.carte-dock-sel-pos {
+  font-family: monospace;
+  font-size: 0.7rem;
+  color: rgba(248, 250, 252, 0.4);
+}
+
+/* ── Desktop adjustments ─────────────────────────────────────────────────────── */
+
+@media (min-width: 980px) {
+  .carte-container {
+    height: calc(100vh - 100px);
+    height: calc(100dvh - 100px);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(165, 180, 252, 0.08);
+  }
+
+  .carte-toolbar {
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
+  }
+
+  .carte-btn {
+    min-width: 40px;
+    min-height: 40px;
+    font-size: 0.9rem;
+  }
+
+  .carte-dock {
+    border-radius: 0 0 12px 12px;
+  }
+}

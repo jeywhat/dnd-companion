@@ -845,7 +845,7 @@ h3 {
   bottom: 0;
   z-index: 9999;
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 0.25rem;
   padding:
     0.6rem 0.5rem
@@ -857,7 +857,7 @@ h3 {
 }
 
 .bottom-nav[data-gm-active="1"] {
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: repeat(8, minmax(0, 1fr));
 }
 
 .nav-button {
