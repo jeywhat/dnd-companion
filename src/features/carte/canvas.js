@@ -32,12 +32,14 @@ export class InfiniteCanvas {
 
   // Selection
   selectedTokenId = null;
+  selectedMapId = null;
 
   // Interaction state
   _isPanning = false;
   _lastMouse = { x: 0, y: 0 };
   _spaceHeld = false;
   _draggedToken = null;
+  _draggedMap = null;
   _dragOffset = { x: 0, y: 0 };
   _rafId = null;
   _dirty = true;
@@ -45,12 +47,20 @@ export class InfiniteCanvas {
   // Touch pinch state
   _touchState = { lastDist: 0, lastCenter: null };
 
+  // Token icon image cache: tokenId → HTMLImageElement
+  _iconCache = new Map();
+
   // Callbacks
   /** @type {((token) => boolean)|null} Permission check — return false to block drag */
   canDragToken = null;
+  /** @type {((map) => boolean)|null} Permission check for map dragging */
+  canDragMap = null;
   onTokenMoved = null;
   onTokenSelected = null;
   onTokenDelete = null;
+  onMapMoved = null;
+  onMapSelected = null;
+  onMapDelete = null;
   onCameraChanged = null;
   onCursorMove = null;
   /** @type {((files: FileList, worldPos: {x:number,y:number}) => void)|null} */
@@ -244,9 +254,20 @@ export class InfiniteCanvas {
     for (const map of this.maps) {
       if (!map._img && map.url) this.loadMapImage(map);
       if (!map._img) continue;
+
       ctx.globalAlpha = 0.95;
       ctx.drawImage(map._img, map.x, map.y, map.w, map.h);
       ctx.globalAlpha = 1;
+
+      // Selection highlight
+      if (this.selectedMapId === map.id) {
+        const invZoom = 1 / this.camera.zoom;
+        ctx.strokeStyle = "rgba(139, 92, 246, 0.9)";
+        ctx.lineWidth = 3 * invZoom;
+        ctx.setLineDash([8 * invZoom, 4 * invZoom]);
+        ctx.strokeRect(map.x, map.y, map.w, map.h);
+        ctx.setLineDash([]);
+      }
     }
   }
 
@@ -290,6 +311,7 @@ export class InfiniteCanvas {
       const cx = token.x + halfGrid;
       const cy = token.y + halfGrid;
       const name = token.name || token.label || "";
+      const icon = token.icon || "";
 
       ctx.save();
 
@@ -318,8 +340,16 @@ export class InfiniteCanvas {
       ctx.lineWidth = (isSelected ? 3 : 1.5) * invZoom;
       ctx.stroke();
 
-      // Initial letter inside circle
-      if (name) {
+      // Icon rendering: data URL image, emoji, or fallback initial letter
+      if (icon.startsWith("data:image/")) {
+        this._drawTokenImage(ctx, icon, token.id, cx, cy, r);
+      } else if (icon) {
+        const fontSize = Math.max(10, tokenSize * 0.6);
+        ctx.font = `${fontSize}px sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(icon, cx, cy);
+      } else if (name) {
         const fontSize = Math.max(10, (tokenSize / 2) * 1.1);
         ctx.font = `bold ${fontSize}px sans-serif`;
         ctx.textAlign = "center";
@@ -342,6 +372,27 @@ export class InfiniteCanvas {
         ctx.restore();
       }
     }
+  }
+
+  /** Draw a cached image icon clipped to a circle. */
+  _drawTokenImage(ctx, dataUrl, tokenId, cx, cy, r) {
+    let img = this._iconCache.get(tokenId);
+
+    if (!img) {
+      img = new Image();
+      img.onload = () => { this._dirty = true; };
+      img.src = dataUrl;
+      this._iconCache.set(tokenId, img);
+    }
+
+    if (!img.complete || !img.naturalWidth) return;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, r * 0.85, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.drawImage(img, cx - r * 0.85, cy - r * 0.85, r * 1.7, r * 1.7);
+    ctx.restore();
   }
 
   _tokenColor(type) {
@@ -496,6 +547,17 @@ export class InfiniteCanvas {
     return null;
   }
 
+  _hitMap(worldX, worldY) {
+    // Iterate in reverse so topmost map (last drawn) is hit first
+    for (let i = this.maps.length - 1; i >= 0; i--) {
+      const m = this.maps[i];
+      if (worldX >= m.x && worldX <= m.x + m.w && worldY >= m.y && worldY <= m.y + m.h) {
+        return m;
+      }
+    }
+    return null;
+  }
+
   // ── Mouse events ──────────────────────────────────────────────────────────
 
   _bindEvents() {
@@ -565,13 +627,15 @@ export class InfiniteCanvas {
       return;
     }
 
-    // Left click → select/drag token or pan
+    // Left click → select/drag token, then map, then pan
     if (e.button === 0) {
       const token = this._hitToken(world.x, world.y);
       if (token) {
         // Always select on click
         this.selectedTokenId = token.id;
+        this.selectedMapId = null;
         this.onTokenSelected?.(token);
+        this.onMapSelected?.(null);
         this._dirty = true;
 
         // Only drag if permission callback allows it
@@ -584,17 +648,39 @@ export class InfiniteCanvas {
         } else {
           console.log("[InfiniteCanvas] 🚫 No permission to drag:", token.id);
         }
-      } else {
-        // Click on empty → deselect + pan
-        if (this.selectedTokenId) {
-          this.selectedTokenId = null;
-          this.onTokenSelected?.(null);
-          this._dirty = true;
-        }
-        this._isPanning = true;
-        this._lastMouse = { x: e.clientX, y: e.clientY };
-        this.canvas.style.cursor = "grabbing";
+        return;
       }
+
+      // Check map hit
+      const map = this._hitMap(world.x, world.y);
+      if (map) {
+        this.selectedMapId = map.id;
+        this.selectedTokenId = null;
+        this.onTokenSelected?.(null);
+        this.onMapSelected?.(map);
+        this._dirty = true;
+
+        const allowed = !this.canDragMap || this.canDragMap(map);
+        if (allowed) {
+          this._draggedMap = map;
+          this._dragOffset = { x: world.x - map.x, y: world.y - map.y };
+          this.canvas.style.cursor = "move";
+          console.log("[InfiniteCanvas] 🖼️ Map grabbed:", map.id);
+        }
+        return;
+      }
+
+      // Click on empty → deselect + pan
+      if (this.selectedTokenId || this.selectedMapId) {
+        this.selectedTokenId = null;
+        this.selectedMapId = null;
+        this.onTokenSelected?.(null);
+        this.onMapSelected?.(null);
+        this._dirty = true;
+      }
+      this._isPanning = true;
+      this._lastMouse = { x: e.clientX, y: e.clientY };
+      this.canvas.style.cursor = "grabbing";
     }
   }
 
@@ -630,8 +716,22 @@ export class InfiniteCanvas {
       return;
     }
 
+    if (this._draggedMap) {
+      let newX = world.x - this._dragOffset.x;
+      let newY = world.y - this._dragOffset.y;
+      if (this.snapToGrid) {
+        const s = this.snapWorld(newX, newY);
+        newX = s.x;
+        newY = s.y;
+      }
+      this._draggedMap.x = newX;
+      this._draggedMap.y = newY;
+      this._dirty = true;
+      return;
+    }
+
     // Hover cursor
-    const hit = this._hitToken(world.x, world.y);
+    const hit = this._hitToken(world.x, world.y) || this._hitMap(world.x, world.y);
     this.canvas.style.cursor = hit ? "pointer" : this._spaceHeld ? "grab" : "default";
   }
 
@@ -649,6 +749,17 @@ export class InfiniteCanvas {
       );
       this.onTokenMoved?.(this._draggedToken);
       this._draggedToken = null;
+      this.canvas.style.cursor = "default";
+      this._dirty = true;
+    }
+    if (this._draggedMap) {
+      console.log(
+        "[InfiniteCanvas] 📍 Map dropped:",
+        this._draggedMap.id,
+        `(${this._draggedMap.x}, ${this._draggedMap.y})`
+      );
+      this.onMapMoved?.(this._draggedMap);
+      this._draggedMap = null;
       this.canvas.style.cursor = "default";
       this._dirty = true;
     }
@@ -672,16 +783,28 @@ export class InfiniteCanvas {
       e.preventDefault();
     }
 
-    // Delete selected token
-    if ((e.code === "Delete" || e.code === "Backspace") && this.selectedTokenId) {
-      const token = this.tokens.find((t) => t.id === this.selectedTokenId);
-      if (token && (!this.canDragToken || this.canDragToken(token))) {
-        console.log("[InfiniteCanvas] 🗑️ Deleting token:", token.id);
-        this.onTokenDelete?.(token);
-        this.tokens = this.tokens.filter((t) => t.id !== this.selectedTokenId);
-        this.selectedTokenId = null;
-        this.onTokenSelected?.(null);
-        this._dirty = true;
+    // Delete selected token or map
+    if ((e.code === "Delete" || e.code === "Backspace") && (this.selectedTokenId || this.selectedMapId)) {
+      if (this.selectedTokenId) {
+        const token = this.tokens.find((t) => t.id === this.selectedTokenId);
+        if (token && (!this.canDragToken || this.canDragToken(token))) {
+          console.log("[InfiniteCanvas] 🗑️ Deleting token:", token.id);
+          this.onTokenDelete?.(token);
+          this.tokens = this.tokens.filter((t) => t.id !== this.selectedTokenId);
+          this.selectedTokenId = null;
+          this.onTokenSelected?.(null);
+          this._dirty = true;
+        }
+      } else if (this.selectedMapId) {
+        const map = this.maps.find((m) => m.id === this.selectedMapId);
+        if (map && (!this.canDragMap || this.canDragMap(map))) {
+          console.log("[InfiniteCanvas] 🗑️ Deleting map:", map.id);
+          this.onMapDelete?.(map);
+          this.maps = this.maps.filter((m) => m.id !== this.selectedMapId);
+          this.selectedMapId = null;
+          this.onMapSelected?.(null);
+          this._dirty = true;
+        }
       }
       e.preventDefault();
     }
@@ -711,7 +834,9 @@ export class InfiniteCanvas {
 
       if (token) {
         this.selectedTokenId = token.id;
+        this.selectedMapId = null;
         this.onTokenSelected?.(token);
+        this.onMapSelected?.(null);
         const allowed = !this.canDragToken || this.canDragToken(token);
         if (allowed) {
           this._draggedToken = token;
@@ -719,13 +844,28 @@ export class InfiniteCanvas {
         }
         this._dirty = true;
       } else {
-        this._isPanning = true;
-        this._lastMouse = { x: touches[0].clientX, y: touches[0].clientY };
+        const map = this._hitMap(world.x, world.y);
+        if (map) {
+          this.selectedMapId = map.id;
+          this.selectedTokenId = null;
+          this.onTokenSelected?.(null);
+          this.onMapSelected?.(map);
+          const allowed = !this.canDragMap || this.canDragMap(map);
+          if (allowed) {
+            this._draggedMap = map;
+            this._dragOffset = { x: world.x - map.x, y: world.y - map.y };
+          }
+          this._dirty = true;
+        } else {
+          this._isPanning = true;
+          this._lastMouse = { x: touches[0].clientX, y: touches[0].clientY };
+        }
       }
     }
 
     if (touches.length === 2) {
       this._draggedToken = null;
+      this._draggedMap = null;
       this._isPanning = false;
       const dx = touches[0].clientX - touches[1].clientX;
       const dy = touches[0].clientY - touches[1].clientY;
@@ -756,6 +896,21 @@ export class InfiniteCanvas {
         }
         this._draggedToken.x = newX;
         this._draggedToken.y = newY;
+        this._dirty = true;
+      } else if (this._draggedMap) {
+        const rect = this.canvas.getBoundingClientRect();
+        const sx = touches[0].clientX - rect.left;
+        const sy = touches[0].clientY - rect.top;
+        const world = this.screenToWorld(sx, sy);
+        let newX = world.x - this._dragOffset.x;
+        let newY = world.y - this._dragOffset.y;
+        if (this.snapToGrid) {
+          const s = this.snapWorld(newX, newY);
+          newX = s.x;
+          newY = s.y;
+        }
+        this._draggedMap.x = newX;
+        this._draggedMap.y = newY;
         this._dirty = true;
       } else if (this._isPanning) {
         const dx = touches[0].clientX - this._lastMouse.x;
@@ -799,6 +954,11 @@ export class InfiniteCanvas {
     if (this._draggedToken) {
       this.onTokenMoved?.(this._draggedToken);
       this._draggedToken = null;
+      this._dirty = true;
+    }
+    if (this._draggedMap) {
+      this.onMapMoved?.(this._draggedMap);
+      this._draggedMap = null;
       this._dirty = true;
     }
     this._isPanning = false;

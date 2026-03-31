@@ -13,7 +13,9 @@ import {
   connectCarteSync,
   disconnectCarteSync,
   publishTokenDebounced,
+  publishMapDebounced,
   deleteToken as firebaseDeleteToken,
+  deleteMap as firebaseDeleteMap,
 } from "../../adapters/carte-sync.js";
 import { processDroppedFiles, restoreCamera } from "./handler.js";
 import "./carte.css";
@@ -165,6 +167,10 @@ function _initCarte(panel) {
     return canInteract(token, role);
   };
 
+  _canvasInstance.canDragMap = () => {
+    return state.room?.role === "gm";
+  };
+
   // ── Token move → Firebase sync (debounced) ──────────────────────────────
   _canvasInstance.onTokenMoved = (token) => {
     const { firebaseUrl, syncRoom } = state.settings;
@@ -173,9 +179,23 @@ function _initCarte(panel) {
     }
   };
 
+  // ── Map move → Firebase sync (debounced) ────────────────────────────────
+  _canvasInstance.onMapMoved = (map) => {
+    const { firebaseUrl, syncRoom } = state.settings;
+    if (firebaseUrl && syncRoom) {
+      const { _img, _loading, ...syncMap } = map;
+      publishMapDebounced({ firebaseUrl, roomId: syncRoom, map: syncMap });
+    }
+  };
+
   // ── Token selected → update dock UI ─────────────────────────────────────
   _canvasInstance.onTokenSelected = (token) => {
-    _updateSelectionDock(panel, token);
+    _updateSelectionDock(panel, token, null);
+  };
+
+  // ── Map selected → update dock UI ───────────────────────────────────────
+  _canvasInstance.onMapSelected = (map) => {
+    _updateSelectionDock(panel, null, map);
   };
 
   // ── Token deleted via keyboard → sync Firebase ──────────────────────────
@@ -183,6 +203,14 @@ function _initCarte(panel) {
     const { firebaseUrl, syncRoom } = state.settings;
     if (firebaseUrl && syncRoom) {
       firebaseDeleteToken({ firebaseUrl, roomId: syncRoom, tokenId: token.id });
+    }
+  };
+
+  // ── Map deleted via keyboard → sync Firebase ────────────────────────────
+  _canvasInstance.onMapDelete = (map) => {
+    const { firebaseUrl, syncRoom } = state.settings;
+    if (firebaseUrl && syncRoom) {
+      firebaseDeleteMap({ firebaseUrl, roomId: syncRoom, mapId: map.id });
     }
   };
 
@@ -240,35 +268,71 @@ function _updateDock(panel) {
   }
 }
 
-function _updateSelectionDock(panel, token) {
+function _updateSelectionDock(panel, token, map) {
   const dock = panel.querySelector("[data-dock-selection]");
   if (!dock) return;
 
-  if (!token) {
-    dock.hidden = true;
-    dock.innerHTML = "";
+  // Token selection
+  if (token) {
+    const role = state.room?.role || "player";
+    const canDelete = canInteract(token, role);
+    const canEdit = canInteract(token, role);
+    const typeLabel = t(`carte.type.${token.type}`) || token.type;
+
+    const TOKEN_ICONS = ["🧙", "👹", "🧑", "🐉", "💀", "🧝", "🧛", "🧟", "👻", "🦊", "🐺", "🗡️"];
+
+    dock.hidden = false;
+    dock.innerHTML = `
+      <span class="carte-dock-sel-info">
+        <span class="carte-dock-sel-dot carte-dock-sel-dot--${token.type}"></span>
+        <strong>${token.name || token.label || token.id}</strong>
+        <span class="carte-dock-sel-type">${typeLabel}</span>
+        <span class="carte-dock-sel-pos">(${Math.round(token.x)}, ${Math.round(token.y)})</span>
+      </span>
+      ${canEdit ? `
+        <span class="carte-dock-icons" role="group" aria-label="${t("carte.changeIcon")}">
+          ${TOKEN_ICONS.map((ic) => `
+            <button type="button" class="carte-icon-btn${token.icon === ic ? " active" : ""}"
+              data-action="carte-set-token-icon" data-icon="${ic}" title="${ic}">${ic}</button>
+          `).join("")}
+          <button type="button" class="carte-icon-btn carte-icon-btn--upload"
+            data-action="carte-upload-token-icon" title="${t("carte.uploadIcon")}">📷</button>
+        </span>
+      ` : ""}
+      ${canDelete ? `
+        <button type="button" class="carte-dock-btn carte-dock-btn--delete" data-action="carte-delete-selected"
+                title="${t("carte.deleteToken")}">
+          🗑️
+        </button>
+      ` : ""}
+    `;
     return;
   }
 
-  const role = state.room?.role || "player";
-  const canDelete = canInteract(token, role);
-  const typeLabel = t(`carte.type.${token.type}`) || token.type;
+  // Map selection
+  if (map) {
+    const isGm = state.room?.role === "gm";
 
-  dock.hidden = false;
-  dock.innerHTML = `
-    <span class="carte-dock-sel-info">
-      <span class="carte-dock-sel-dot carte-dock-sel-dot--${token.type}"></span>
-      <strong>${token.name || token.label || token.id}</strong>
-      <span class="carte-dock-sel-type">${typeLabel}</span>
-      <span class="carte-dock-sel-pos">(${Math.round(token.x)}, ${Math.round(token.y)})</span>
-    </span>
-    ${canDelete ? `
-      <button type="button" class="carte-dock-btn carte-dock-btn--delete" data-action="carte-delete-selected"
-              title="${t("carte.deleteToken")}">
-        🗑️
-      </button>
-    ` : ""}
-  `;
+    dock.hidden = false;
+    dock.innerHTML = `
+      <span class="carte-dock-sel-info">
+        <span class="carte-dock-sel-dot carte-dock-sel-dot--map"></span>
+        <strong>${t("carte.mapImage")}</strong>
+        <span class="carte-dock-sel-pos">(${Math.round(map.x)}, ${Math.round(map.y)}) ${map.w}×${map.h}</span>
+      </span>
+      ${isGm ? `
+        <button type="button" class="carte-dock-btn carte-dock-btn--delete" data-action="carte-delete-selected-map"
+                title="${t("carte.deleteMap")}">
+          🗑️
+        </button>
+      ` : ""}
+    `;
+    return;
+  }
+
+  // No selection
+  dock.hidden = true;
+  dock.innerHTML = "";
 }
 
 // ── Firebase update handler ─────────────────────────────────────────────────
@@ -332,8 +396,14 @@ function _handleCarteUpdate(data, path) {
 
     if (data === null) {
       canvas.maps = canvas.maps.filter((m) => m.id !== mapId);
+      if (canvas.selectedMapId === mapId) {
+        canvas.selectedMapId = null;
+        canvas.onMapSelected?.(null);
+      }
       console.log("[Carte] 🗑️ Map removed:", mapId);
     } else {
+      if (canvas._draggedMap?.id === mapId) return;
+
       const idx = canvas.maps.findIndex((m) => m.id === mapId);
       if (idx >= 0) {
         // Preserve local _img if URL didn't change

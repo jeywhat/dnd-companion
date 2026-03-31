@@ -118,6 +118,25 @@ Automatic rich embeds for every action:
 - Safe-area padding for modern iOS/Android devices
 - Offline-capable (localStorage persistence)
 
+### 🎒 Inventory System
+- **RPG Grid Inventory** — Drag-and-drop backpack with multi-size items (1×1 potions, 1×4 staffs, 2×2 relics, 2×1 swords)
+- **Multiple Containers** — Pockets (3×2), Pouch (4×3), Backpack (6×4), Large Bag (8×4), Bag of Holding (10×6)
+- **Resize On-the-Fly** — Upgrade or downgrade each container; items auto-evicted if they no longer fit
+- **Collision Detection** — Multi-cell items snap to grid with real-time overlap prevention
+- **Weight Tracking** — Per-container and total weight displayed
+- **JSON Export / Import** — Full inventory serialization for backup or sharing
+- **Custom Items** — Create items with name, size, weight, and emoji/color
+
+### 🗺️ Carte (Interactive Map / VTT)
+- **Infinite Canvas** — Pan & zoom with mouse wheel or pinch-to-zoom; grid overlay with snap-to-grid
+- **Token Types** — Player (🧙), Monster (👹), NPC (🧑) tokens with custom emoji or uploaded image icons
+- **Custom Token Icons** — Choose from 12 emoji presets or upload a custom image (auto-cropped to 100×100)
+- **Drag-and-Drop Maps** — Import images as map backgrounds, then drag/reposition them (GM only)
+- **Map Selection** — Click to select a map; Delete/Backspace to remove; purple dashed border highlight
+- **Permission Model** — GM can move all tokens and maps; players can only move their own token
+- **Firebase Sync** — All tokens, maps, and positions sync in real-time across the room
+- **Minimap** — Toggle a corner minimap for navigation on large maps
+
 ---
 
 ## 🖼️ Screenshots
@@ -333,6 +352,7 @@ The codebase follows **Clean Architecture (Ports & Adapters)** combined with **F
 │    app/shell.js · app/renderer.js · app/events.js · main.js        │
 ├──────────────┬─────────────────────────────────────────────────────┤
 │  Features    │  combat · rolls · grimoire · character · settings    │
+│              │  inventory · carte                                   │
 │  (FSD)       │  room · party · combat-tracker                       │
 │              │  Each: renderer.js + handler.js                      │
 ├──────────────┴─────────────────────────────────────────────────────┤
@@ -388,6 +408,7 @@ dnd-companion/
 │   │   ├── discord.js                 # Webhook payloads & sending
 │   │   ├── firebase-sync.js           # Rolls SSE listener & publisher, party sync
 │   │   ├── room-sync.js               # Room create/join/kick/ban REST ops
+│   │   ├── carte-sync.js             # Carte Firebase REST+SSE sync
 │   │   └── storage.js                 # localStorage persistence
 │   ├── features/                      # Feature-Sliced Design modules
 │   │   ├── combat/
@@ -416,6 +437,16 @@ dnd-companion/
 │   │   └── settings/
 │   │       ├── handler.js             # Discord, Firebase, export/import, lock
 │   │       └── renderer.js            # Session lock summary
+│   │   ├── inventory/
+│   │   │   ├── grid.js                # Pure grid math (canPlace, findFreeSlot)
+│   │   │   ├── handler.js             # Container CRUD, item placement, export
+│   │   │   └── renderer.js            # Multi-container grids, drag-drop
+│   │   └── carte/
+│   │       ├── canvas.js              # Infinite canvas engine (pan/zoom/grid)
+│   │       ├── tokens.js              # Token factory with default icons
+│   │       ├── handler.js             # Token/map actions, icon upload
+│   │       ├── renderer.js            # Canvas init, Firebase sync wiring, dock UI
+│   │       └── carte.css              # Carte-specific styles
 │   ├── shared/                        # Cross-feature utilities
 │   │   ├── damage-parser.js           # Parse "1d8+3" damage strings
 │   │   ├── dom.js                     # escapeHtml, uniqueId, updateFieldValue

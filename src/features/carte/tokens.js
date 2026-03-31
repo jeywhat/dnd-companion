@@ -2,20 +2,27 @@
  * Token factory & merge utilities for the Carte whiteboard.
  *
  * Token structure :
- *   { id, owner, type, x, y, size, name, color }
+ *   { id, owner, type, x, y, size, name, color, icon }
  *   - size = diameter in world units (= pixels at zoom 1). Default 40.
  *   - owner = PLAYER_ID of the creator
  *   - type = "player" | "monster" | "npc"
+ *   - icon = emoji string (e.g. "🧙") or data:image/* URL for custom avatar
  */
 
 import { PLAYER_ID } from "../../adapters/firebase-sync.js";
 
 let _nextId = 1;
 
+const DEFAULT_ICONS = {
+  player:  "🧙",
+  monster: "👹",
+  npc:     "🧑",
+};
+
 /**
  * Create a new token at the given world coordinates.
  */
-export function createToken({ type = "player", x = 0, y = 0, name = "", size = 40, color = "" } = {}) {
+export function createToken({ type = "player", x = 0, y = 0, name = "", size = 40, color = "", icon = "" } = {}) {
   const token = {
     id: `tok-${PLAYER_ID.slice(0, 6)}-${Date.now().toString(36)}-${_nextId++}`,
     owner: PLAYER_ID,
@@ -25,8 +32,9 @@ export function createToken({ type = "player", x = 0, y = 0, name = "", size = 4
     size,
     name: name || _defaultName(type),
     color,
+    icon: icon || DEFAULT_ICONS[type] || "❓",
   };
-  console.log("[Tokens] ✅ Created:", token.id, token.type, token.name);
+  console.log("[Tokens] ✅ Created:", token.id, token.type, token.name, token.icon);
   return token;
 }
 

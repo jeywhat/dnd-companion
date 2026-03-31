@@ -15,6 +15,7 @@ import {
   publishToken,
   publishMap,
   deleteToken as firebaseDeleteToken,
+  deleteMap as firebaseDeleteMap,
   clearAllCarte,
 } from "../../adapters/carte-sync.js";
 import { getCanvasInstance } from "./renderer.js";
@@ -236,7 +237,133 @@ export async function handleCarteAction(button) {
     return true;
   }
 
+  // ── Delete selected map ─────────────────────────────────────────────────
+
+  if (action === "carte-delete-selected-map") {
+    if (!canvas || !canvas.selectedMapId) return true;
+
+    const map = canvas.maps.find((m) => m.id === canvas.selectedMapId);
+    if (!map) return true;
+
+    if (state.room?.role !== "gm") {
+      setStatus("error", t("carte.noPermission"));
+      commit(false);
+      return true;
+    }
+
+    canvas.maps = canvas.maps.filter((m) => m.id !== map.id);
+    canvas.selectedMapId = null;
+    canvas.onMapSelected?.(null);
+    canvas.requestRedraw();
+
+    const { firebaseUrl, syncRoom } = state.settings;
+    if (firebaseUrl && syncRoom) {
+      await firebaseDeleteMap({ firebaseUrl, roomId: syncRoom, mapId: map.id });
+    }
+
+    setStatus("info", t("carte.mapDeleted"));
+    commit(false);
+    return true;
+  }
+
+  // ── Set token icon (emoji) ──────────────────────────────────────────────
+
+  if (action === "carte-set-token-icon") {
+    if (!canvas || !canvas.selectedTokenId) return true;
+
+    const token = canvas.tokens.find((tok) => tok.id === canvas.selectedTokenId);
+    if (!token) return true;
+
+    const isGm = state.room?.role === "gm";
+    if (!isGm && token.owner !== PLAYER_ID) return true;
+
+    const emoji = button.dataset.icon;
+    if (!emoji) return true;
+
+    token.icon = emoji;
+    canvas.requestRedraw();
+
+    const { firebaseUrl, syncRoom } = state.settings;
+    if (firebaseUrl && syncRoom) {
+      await publishToken({ firebaseUrl, roomId: syncRoom, token });
+    }
+
+    setStatus("info", t("carte.iconChanged"));
+    commit(false);
+    return true;
+  }
+
+  // ── Upload custom token icon (image) ────────────────────────────────────
+
+  if (action === "carte-upload-token-icon") {
+    if (!canvas || !canvas.selectedTokenId) return true;
+
+    const token = canvas.tokens.find((tok) => tok.id === canvas.selectedTokenId);
+    if (!token) return true;
+
+    const isGm = state.room?.role === "gm";
+    if (!isGm && token.owner !== PLAYER_ID) return true;
+
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = "image/*";
+
+    fileInput.addEventListener("change", async () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+
+      try {
+        const dataUrl = await _resizeIconImage(file, 100);
+        token.icon = dataUrl;
+        canvas._iconCache.delete(token.id);
+        canvas.requestRedraw();
+
+        const { firebaseUrl, syncRoom } = state.settings;
+        if (firebaseUrl && syncRoom) {
+          await publishToken({ firebaseUrl, roomId: syncRoom, token });
+        }
+
+        setStatus("info", t("carte.iconChanged"));
+        commit(false);
+      } catch (err) {
+        console.warn("[Carte] ❌ Icon upload failed:", err);
+        setStatus("error", t("carte.iconError"));
+        commit(false);
+      }
+    });
+
+    fileInput.click();
+    return true;
+  }
+
   return false;
+}
+
+/**
+ * Resize an image file to a square icon (JPEG, max dim × dim pixels).
+ */
+function _resizeIconImage(file, dim) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const size = Math.min(img.naturalWidth, img.naturalHeight);
+        const sx = (img.naturalWidth - size) / 2;
+        const sy = (img.naturalHeight - size) / 2;
+        const off = document.createElement("canvas");
+        off.width = dim;
+        off.height = dim;
+        const octx = off.getContext("2d");
+        octx.drawImage(img, sx, sy, size, size, 0, 0, dim, dim);
+        resolve(off.toDataURL("image/jpeg", 0.8));
+      };
+      img.onerror = reject;
+      img.src = reader.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
 
 // ── Image processing (called from renderer on file drop) ────────────────────

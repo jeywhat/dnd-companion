@@ -428,4 +428,11 @@ export const fr = {
   "carte.type.player"      : "joueur",
   "carte.type.monster"     : "monstre",
   "carte.type.npc"         : "PNJ",
+  "carte.changeIcon"       : "Changer l'icône du token",
+  "carte.uploadIcon"       : "Importer une image personnalisée",
+  "carte.iconChanged"      : "Icône du token mise à jour.",
+  "carte.iconError"        : "Erreur lors de l'import de l'icône.",
+  "carte.mapImage"         : "Image de carte",
+  "carte.deleteMap"        : "Supprimer la carte sélectionnée",
+  "carte.mapDeleted"       : "Carte supprimée.",
 };

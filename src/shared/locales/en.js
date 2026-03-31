@@ -428,4 +428,11 @@ export const en = {
   "carte.type.player"      : "Player",
   "carte.type.monster"     : "Monster",
   "carte.type.npc"         : "NPC",
+  "carte.changeIcon"       : "Change token icon",
+  "carte.uploadIcon"       : "Upload custom image",
+  "carte.iconChanged"      : "Token icon updated.",
+  "carte.iconError"        : "Error uploading icon.",
+  "carte.mapImage"         : "Map image",
+  "carte.deleteMap"        : "Delete selected map",
+  "carte.mapDeleted"       : "Map deleted.",
 };

@@ -100,6 +100,25 @@ export function publishTokenDebounced({ firebaseUrl, roomId, token }, delay = 10
   );
 }
 
+/**
+ * Debounced map publish — avoids flooding Firebase during drag.
+ */
+export function publishMapDebounced({ firebaseUrl, roomId, map }, delay = 100) {
+  const key = `map-${map.id}`;
+  const existing = _debounceTimers.get(key);
+  if (existing) clearTimeout(existing);
+
+  _debounceTimers.set(
+    key,
+    setTimeout(() => {
+      _debounceTimers.delete(key);
+      // Strip non-serializable _img before publish
+      const { _img, _loading, ...syncMap } = map;
+      publishMap({ firebaseUrl, roomId, map: syncMap });
+    }, delay)
+  );
+}
+
 export async function deleteToken({ firebaseUrl, roomId, tokenId }) {
   if (!firebaseUrl?.startsWith("https://") || !roomId?.trim()) return;
 
