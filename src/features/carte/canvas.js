@@ -713,6 +713,8 @@ export class InfiniteCanvas {
       this._draggedToken.x = newX;
       this._draggedToken.y = newY;
       this._dirty = true;
+      // Real-time sync during drag (debounced by caller)
+      this.onTokenMoved?.(this._draggedToken);
       return;
     }
 
@@ -727,6 +729,8 @@ export class InfiniteCanvas {
       this._draggedMap.x = newX;
       this._draggedMap.y = newY;
       this._dirty = true;
+      // Real-time sync during drag (debounced by caller)
+      this.onMapMoved?.(this._draggedMap);
       return;
     }
 
@@ -897,6 +901,7 @@ export class InfiniteCanvas {
         this._draggedToken.x = newX;
         this._draggedToken.y = newY;
         this._dirty = true;
+        this.onTokenMoved?.(this._draggedToken);
       } else if (this._draggedMap) {
         const rect = this.canvas.getBoundingClientRect();
         const sx = touches[0].clientX - rect.left;
@@ -912,6 +917,7 @@ export class InfiniteCanvas {
         this._draggedMap.x = newX;
         this._draggedMap.y = newY;
         this._dirty = true;
+        this.onMapMoved?.(this._draggedMap);
       } else if (this._isPanning) {
         const dx = touches[0].clientX - this._lastMouse.x;
         const dy = touches[0].clientY - this._lastMouse.y;
