@@ -83,21 +83,6 @@ function _initCarte(panel) {
     <div class="carte-container">
       <div class="carte-toolbar">
         <div class="carte-toolbar-group">
-          <button type="button" class="carte-btn" data-action="carte-add-token" data-token-type="player"
-                  title="${t("carte.addPlayer")}">
-            <span>🧙</span>
-          </button>
-          <button type="button" class="carte-btn" data-action="carte-add-token" data-token-type="monster"
-                  title="${t("carte.addMonster")}">
-            <span>👹</span>
-          </button>
-          <button type="button" class="carte-btn" data-action="carte-add-token" data-token-type="npc"
-                  title="${t("carte.addNpc")}">
-            <span>🧑</span>
-          </button>
-        </div>
-
-        <div class="carte-toolbar-group">
           <button type="button" class="carte-btn" data-action="carte-toggle-grid"
                   title="${t("carte.toggleGrid")}">
             <span>#</span>
@@ -125,6 +110,18 @@ function _initCarte(panel) {
 
         <!-- GM-only tools -->
         <div class="carte-toolbar-group carte-gm-tools" data-carte-gm-tools ${isGm ? "" : "hidden"}>
+          <button type="button" class="carte-btn" data-action="carte-add-token" data-token-type="player"
+                  title="${t("carte.addPlayer")}">
+            <span>🧙</span>
+          </button>
+          <button type="button" class="carte-btn" data-action="carte-add-token" data-token-type="monster"
+                  title="${t("carte.addMonster")}">
+            <span>👹</span>
+          </button>
+          <button type="button" class="carte-btn" data-action="carte-add-token" data-token-type="npc"
+                  title="${t("carte.addNpc")}">
+            <span>🧑</span>
+          </button>
           <button type="button" class="carte-btn carte-btn--danger" data-action="carte-clear-board"
                   title="${t("carte.clearBoard")}">
             🗑️ ${t("carte.clearBoard")}

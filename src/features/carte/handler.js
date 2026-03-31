@@ -27,9 +27,11 @@ export async function handleCarteAction(button) {
   const { action } = button.dataset;
   const canvas = getCanvasInstance();
 
-  // ── Add token (toolbar buttons) ───────────────────────────────────────────
+  // ── Add token (toolbar buttons — GM only) ──────────────────────────────────
 
   if (action === "carte-add-token") {
+    if (state.room?.role !== "gm") return true;
+
     const type = button.dataset.tokenType || "player";
 
     let x = 0, y = 0;
