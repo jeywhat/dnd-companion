@@ -51,6 +51,25 @@ function sanitiseSpellSlots(raw) {
   return result;
 }
 
+function sanitiseInventory(raw) {
+  if (!raw || typeof raw !== "object") return { items: [] };
+
+  const items = sanitiseArray(raw.items)
+    .filter((item) => item && typeof item.name === "string" && item.name.trim())
+    .map((item) => ({
+      id: typeof item.id === "string" && item.id ? item.id : `inv-${Date.now()}`,
+      name: String(item.name).trim().slice(0, 100),
+      sizeX: clamp(toInt(item.sizeX, 1), 1, 8),
+      sizeY: clamp(toInt(item.sizeY, 1), 1, 4),
+      emoji: typeof item.emoji === "string" ? item.emoji.slice(0, 8) : "📦",
+      weight: Math.max(parseFloat(item.weight) || 0, 0),
+      col: clamp(toInt(item.col, 0), 0, 7),
+      row: clamp(toInt(item.row, 0), 0, 3),
+    }));
+
+  return { items };
+}
+
 export function sanitiseState(rawState) {
   const defaultState = createDefaultState();
 
@@ -101,6 +120,8 @@ export function sanitiseState(rawState) {
     diceColor  : typeof rawSettings.diceColor   === "string" && rawSettings.diceColor.startsWith("#")
       ? rawSettings.diceColor : "#7c3aed",
   };
+
+  nextState.inventory = sanitiseInventory(rawState.inventory);
 
   const rawRoom = rawState.room ?? {};
   nextState.room = {

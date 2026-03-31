@@ -69,6 +69,10 @@ export function getAppTemplate() {
           <span class="nav-icon" aria-hidden="true">🏰</span>
           <span class="nav-label">${t("nav.room")}</span>
         </button>
+        <button type="button" class="nav-button" data-action="switch-tab" data-tab="inventory">
+          <span class="nav-icon" aria-hidden="true">🎒</span>
+          <span class="nav-label">${t("nav.inventory")}</span>
+        </button>
         <button type="button" class="nav-button" data-action="switch-tab" data-tab="settings">
           <span class="nav-icon" aria-hidden="true">⚙️</span>
           <span class="nav-label">${t("nav.settings")}</span>
@@ -440,6 +444,10 @@ export function getAppTemplate() {
             <section class="stack-form" aria-label="${t("room.section.ariaLabel")}">
               <div data-room-panel></div>
             </section>
+          </section>
+
+          <section class="panel" data-panel="inventory" hidden>
+            <div data-inventory></div>
           </section>
 
           <section class="panel" data-panel="settings" hidden>

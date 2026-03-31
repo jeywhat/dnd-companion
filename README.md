@@ -118,6 +118,17 @@ Automatic rich embeds for every action:
 - Safe-area padding for modern iOS/Android devices
 - Offline-capable (localStorage persistence)
 
+### 🎒 Inventory (Backpack Grid)
+- **8×4 Grid** — 32-slot RPG-style backpack with visual cell layout
+- **Multi-size Items** — Objects of 1×1, 1×4 (vertical), 2×2, 2×1 and more
+- **Drag & Drop** — Pointer-event based: works on desktop and mobile touch
+- **Collision Detection** — Real-time visual feedback (green/red) while dragging
+- **10 Preset Items** — Potion, Staff, Relic, Sword, Shield, Scroll, Torch, Ring, Helmet, Gem
+- **Custom Items** — Create items with custom name, emoji, size, and weight
+- **Total Weight** — Automatically calculated and displayed
+- **JSON Export / Import** — Save and load your inventory as a standalone JSON file
+- **LocalStorage Persistence** — Inventory saved alongside character data
+
 ---
 
 ## 🖼️ Screenshots
@@ -333,7 +344,7 @@ The codebase follows **Clean Architecture (Ports & Adapters)** combined with **F
 │    app/shell.js · app/renderer.js · app/events.js · main.js        │
 ├──────────────┬─────────────────────────────────────────────────────┤
 │  Features    │  combat · rolls · grimoire · character · settings    │
-│  (FSD)       │  room · party · combat-tracker                       │
+│  (FSD)       │  room · party · combat-tracker · inventory            │
 │              │  Each: renderer.js + handler.js                      │
 ├──────────────┴─────────────────────────────────────────────────────┤
 │                      Application State                              │
@@ -413,6 +424,10 @@ dnd-companion/
 │   │   ├── room/
 │   │   │   ├── handler.js             # Create/join/leave/dissolve, kick/ban
 │   │   │   └── renderer.js            # Room tab: no-room form, active room view
+│   │   ├── inventory/
+│   │   │   ├── grid.js                # Pure grid math: occupancy, collision, weight
+│   │   │   ├── handler.js             # Add/move/remove items, JSON export/import
+│   │   │   └── renderer.js            # 8×4 grid, palette, drag & drop
 │   │   └── settings/
 │   │       ├── handler.js             # Discord, Firebase, export/import, lock
 │   │       └── renderer.js            # Session lock summary

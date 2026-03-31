@@ -80,6 +80,7 @@ export function createDefaultState() {
         9: { max: 0, used: 0 }
       }
     },
+    inventory: { items: [] },
     settings: { webhookUrl: "", firebaseUrl: "", syncRoom: "", diceColor: "#7c3aed" },
     room: { role: null, name: "", code: "", gmSid: "" },
     sessionLock: {

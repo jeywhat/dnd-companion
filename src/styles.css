@@ -3099,3 +3099,226 @@ body:has(#dice-box.dice-box--active) [data-initiative-modal] .initiative-modal-b
 @media (max-width: 500px) {
   .combat-tracker-panel { display: none; }
 }
+
+/* ─── Inventory ──────────────────────────────────────────────────────────────── */
+
+.inv-grid-wrapper {
+  overflow-x: auto;
+  padding: 0.5rem 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+.inv-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 64px);
+  grid-template-rows: repeat(4, 64px);
+  gap: 2px;
+  width: fit-content;
+  margin: 0 auto;
+}
+
+.inv-cell {
+  background: var(--bg-soft);
+  border: 2px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.inv-cell-valid {
+  border-color: var(--success) !important;
+  background: rgba(34, 197, 94, 0.15) !important;
+}
+
+.inv-cell-invalid {
+  border-color: var(--danger) !important;
+  background: rgba(239, 68, 68, 0.15) !important;
+}
+
+.inv-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background: var(--surface-strong);
+  border: 2px solid var(--primary);
+  border-radius: var(--radius-sm);
+  cursor: grab;
+  position: relative;
+  z-index: 1;
+  user-select: none;
+  touch-action: none;
+  transition: transform 0.1s, box-shadow 0.15s;
+  overflow: hidden;
+}
+
+.inv-item:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.4);
+}
+
+.inv-item:active {
+  cursor: grabbing;
+}
+
+.inv-item-dragging {
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+.inv-item-emoji {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.inv-item-name {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  padding: 0 4px;
+}
+
+.inv-item-remove {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 18px;
+  height: 18px;
+  font-size: 0.6rem;
+  line-height: 1;
+  border: none;
+  border-radius: 50%;
+  background: var(--danger);
+  color: white;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  z-index: 2;
+}
+
+.inv-item:hover .inv-item-remove {
+  opacity: 1;
+}
+
+/* Drag ghost */
+.inv-drag-ghost {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.85;
+  transform: scale(1.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-strong);
+  border: 2px solid var(--primary-strong);
+  border-radius: var(--radius-sm);
+  font-size: 1.5rem;
+}
+
+/* Palette */
+.inv-palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.inv-palette-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.5rem;
+  background: var(--bg-soft);
+  border: 2px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  transition: border-color 0.15s, transform 0.1s;
+  min-width: 72px;
+}
+
+.inv-palette-item:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+}
+
+.inv-palette-item:active {
+  cursor: grabbing;
+}
+
+.inv-palette-emoji {
+  font-size: 1.5rem;
+}
+
+.inv-palette-name {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.inv-palette-size {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+/* Custom item form */
+.inv-custom-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.inv-custom-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.inv-custom-row .field {
+  flex: 1;
+}
+
+/* Inventory actions bar */
+.inv-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+@media (max-width: 560px) {
+  .inv-grid {
+    grid-template-columns: repeat(8, 48px);
+    grid-template-rows: repeat(4, 48px);
+  }
+
+  .inv-item-emoji {
+    font-size: 1.2rem;
+  }
+
+  .inv-item-name {
+    font-size: 0.5rem;
+  }
+
+  .inv-palette {
+    gap: 0.35rem;
+  }
+
+  .inv-palette-item {
+    min-width: 60px;
+    padding: 0.35rem;
+  }
+
+  .inv-custom-row {
+    flex-wrap: wrap;
+  }
+}
