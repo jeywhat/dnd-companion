@@ -56,9 +56,13 @@ export class InfiniteCanvas {
   /** @type {((map) => boolean)|null} Permission check for map dragging */
   canDragMap = null;
   onTokenMoved = null;
+  /** @type {((token) => void)|null} Final position callback on drag end */
+  onTokenDropped = null;
   onTokenSelected = null;
   onTokenDelete = null;
   onMapMoved = null;
+  /** @type {((map) => void)|null} Final position callback on drag end */
+  onMapDropped = null;
   onMapSelected = null;
   onMapDelete = null;
   onCameraChanged = null;
@@ -751,7 +755,7 @@ export class InfiniteCanvas {
         this._draggedToken.id,
         `(${this._draggedToken.x}, ${this._draggedToken.y})`
       );
-      this.onTokenMoved?.(this._draggedToken);
+      this.onTokenDropped?.(this._draggedToken);
       this._draggedToken = null;
       this.canvas.style.cursor = "default";
       this._dirty = true;
@@ -762,7 +766,7 @@ export class InfiniteCanvas {
         this._draggedMap.id,
         `(${this._draggedMap.x}, ${this._draggedMap.y})`
       );
-      this.onMapMoved?.(this._draggedMap);
+      this.onMapDropped?.(this._draggedMap);
       this._draggedMap = null;
       this.canvas.style.cursor = "default";
       this._dirty = true;
@@ -958,12 +962,12 @@ export class InfiniteCanvas {
 
   _handleTouchEnd() {
     if (this._draggedToken) {
-      this.onTokenMoved?.(this._draggedToken);
+      this.onTokenDropped?.(this._draggedToken);
       this._draggedToken = null;
       this._dirty = true;
     }
     if (this._draggedMap) {
-      this.onMapMoved?.(this._draggedMap);
+      this.onMapDropped?.(this._draggedMap);
       this._draggedMap = null;
       this._dirty = true;
     }

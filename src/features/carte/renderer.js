@@ -12,6 +12,8 @@ import { canInteract } from "./tokens.js";
 import {
   connectCarteSync,
   disconnectCarteSync,
+  publishToken,
+  publishMap,
   publishTokenDebounced,
   publishMapDebounced,
   deleteToken as firebaseDeleteToken,
@@ -182,6 +184,25 @@ function _initCarte(panel) {
     if (firebaseUrl && syncRoom) {
       const { _img, _loading, ...syncMap } = map;
       publishMapDebounced({ firebaseUrl, roomId: syncRoom, map: syncMap });
+    }
+  };
+
+  // ── Token dropped → immediate Firebase sync (final position) ────────────
+  _canvasInstance.onTokenDropped = (token) => {
+    const { firebaseUrl, syncRoom } = state.settings;
+    if (firebaseUrl && syncRoom) {
+      console.info("[Carte] 📤 Token dropped → immediate publish", token.id, `(${token.x}, ${token.y})`);
+      publishToken({ firebaseUrl, roomId: syncRoom, token });
+    }
+  };
+
+  // ── Map dropped → immediate Firebase sync (final position) ──────────────
+  _canvasInstance.onMapDropped = (map) => {
+    const { firebaseUrl, syncRoom } = state.settings;
+    if (firebaseUrl && syncRoom) {
+      const { _img, _loading, ...syncMap } = map;
+      console.info("[Carte] 📤 Map dropped → immediate publish", map.id, `(${map.x}, ${map.y})`);
+      publishMap({ firebaseUrl, roomId: syncRoom, map: syncMap });
     }
   };
 
