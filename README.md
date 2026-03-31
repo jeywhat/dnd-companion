@@ -69,14 +69,17 @@ No account required. No pay-to-play. Just open and roll.
 - **Roll Broadcasting** — Every d20 roll appears on all connected screens the moment it's thrown
 - **Animated Remote Popups** — Slot-machine number animation in SVG die shapes, stacked per player
 - **Party State Sync** — HP, avatar, class, and level synced in real time to the party panel
-- **Audio Sync** — YouTube music playback state (video, position, volume) synced from GM to all players in real time
+- **Audio Sync** — YouTube + MP3 music playback state (video/track, position, volume) synced from GM to all players in real time
 - **Presence Heartbeat** — 30-second keep-alive publishes keep `updatedAt` fresh; presence dots reflect live connection status
 - **Auto-reconnect** — Seamlessly reconnects if Firebase connection drops
 
-### 🎵 Music & Soundboard (YouTube Sync)
+### 🎵 Music & Soundboard (YouTube + MP3)
 - **GM-controlled YouTube Player** — Game Master loads YouTube videos/playlists; all connected players sync automatically
+- **MP3 Upload & Playback** — Upload MP3 files to Firebase Storage; stream via HTML5 Audio with full sync
+- **Dual Source** — Switch seamlessly between YouTube and MP3; active source auto-detected
 - **Transport Controls** — Play, pause, stop, seek bar, and volume — GM only
 - **URL or Video ID** — Paste any YouTube URL or bare video ID to load
+- **Upload Progress** — Visual progress bar during MP3 upload to Firebase Storage
 - **RPG Ambiance Presets** — 8 one-click ambient tracks (tavern, forest, battle, dungeon, campfire, etc.)
 - **Soundboard** — 6 short SFX buttons (sword, explosion, thunder, door, magic, scream) broadcast to all players
 - **Auto-sync** — Position correction every 5s; drift tolerance of 3s to avoid jitter
@@ -262,7 +265,8 @@ Firebase Realtime Database is used for **zero-infrastructure multiplayer sync** 
 ├── _kicks/        → { [sid]: timestamp }                  (kick/ban signals)
 ├── _combat/       → { state, round, currentTurn,          (initiative tracker)
 │                       panelVisible, initiatives: { … } }
-├── audio/         → { videoId, position, isPlaying,       (YouTube sync)
+├── audio/         → { videoId, sourceType, trackUrl,    (YouTube + MP3 sync)
+│                       trackName, position, isPlaying,
 │                       volume, sfx: { … } }
 └── {sessionId}/   → roll payload                          (dice roll events)
     party/
@@ -395,12 +399,13 @@ dnd-companion/
 │   │   └── dice.js                    # Roll validation with crypto RNG
 │   ├── adapters/                      # External service wrappers (Ports)
 │   │   ├── anti-cheat.js              # Session baseline & integrity check
-│   │   ├── audio-sync.js              # YouTube audio SSE & REST sync
+│   │   ├── audio-sync.js              # YouTube/MP3 audio SSE & REST sync
 │   │   ├── combat-sync.js             # Initiative tracker SSE & REST ops
 │   │   ├── dice-animation.js          # @3d-dice/dice-box wrapper
 │   │   ├── discord.js                 # Webhook payloads & sending
 │   │   ├── firebase-sync.js           # Rolls SSE listener & publisher, party sync
 │   │   ├── room-sync.js               # Room create/join/kick/ban REST ops
+│   │   ├── storage-upload.js          # Firebase Storage REST upload (for MP3)
 │   │   └── storage.js                 # localStorage persistence
 │   ├── features/                      # Feature-Sliced Design modules
 │   │   ├── combat/
@@ -425,7 +430,7 @@ dnd-companion/
 │   │   │   └── renderer.js            # Left fixed party panel
 │   │   ├── audio/
 │   │   │   ├── handler.js             # Play/pause, load video, seek, SFX, volume
-│   │   │   └── renderer.js            # YouTube IFrame mount, Firebase sync, controls
+│   │   │   └── renderer.js            # YouTube + MP3 dual-source player, Firebase sync
 │   │   ├── room/
 │   │   │   ├── handler.js             # Create/join/leave/dissolve, kick/ban
 │   │   │   └── renderer.js            # Room tab: no-room form, active room view

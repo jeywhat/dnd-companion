@@ -496,6 +496,18 @@ export function getAppTemplate() {
                   data-setting-field="firebaseUrl"
                 />
               </label>
+              <label class="field" for="storage-bucket" style="margin-top:0.6rem">
+                <span>${t("settings.sync.storageBucketLabel")}</span>
+                <input
+                  id="storage-bucket"
+                  type="text"
+                  autocomplete="off"
+                  spellcheck="false"
+                  placeholder="${t("settings.sync.storageBucketPlaceholder")}"
+                  data-setting-field="storageBucket"
+                />
+                <span class="muted" style="font-size:0.75rem">${t("settings.sync.storageBucketNote")}</span>
+              </label>
               <label class="field" for="dice-color"style="margin-top:0.6rem">
                 <span>${t("settings.sync.diceColorLabel")}</span>
                 <div style="display:flex;align-items:center;gap:0.75rem">
@@ -570,8 +582,14 @@ export function getAppTemplate() {
               </div>
 
               <div class="audio-player-wrap">
-                <div id="yt-player-slot" class="yt-player-slot"></div>
+                <div class="audio-yt-wrap">
+                  <div id="yt-player-slot" class="yt-player-slot"></div>
+                </div>
+                <div class="audio-mp3-wrap" hidden>
+                  <div class="audio-mp3-indicator">🎵 MP3</div>
+                </div>
                 <p class="audio-now-playing muted" data-audio-now-playing>${t("audio.nothingPlaying")}</p>
+                <p class="audio-time muted" data-audio-time></p>
               </div>
 
               <div class="audio-controls audio-gm-only" hidden>
@@ -587,6 +605,13 @@ export function getAppTemplate() {
                 <div class="audio-url-row">
                   <input type="text" id="audio-url-input" class="audio-url-input" placeholder="${t("audio.urlPlaceholder")}">
                   <button type="button" class="audio-btn audio-load-btn" data-action="audio-load">${t("audio.loadButton")}</button>
+                </div>
+                <div class="audio-mp3-row">
+                  <input type="file" id="audio-mp3-file" accept="audio/*" hidden>
+                  <button type="button" class="audio-btn audio-upload-btn" data-action="audio-upload-mp3">📁 ${t("audio.uploadMp3")}</button>
+                  <div class="audio-upload-progress-wrap" hidden>
+                    <progress id="audio-upload-progress" class="audio-upload-progress" max="100" value="0"></progress>
+                  </div>
                 </div>
               </div>
 

@@ -168,6 +168,9 @@ export const fr = {
   "settings.sync.diceColorNote": "Visible par les autres joueurs sur leur écran",
   "settings.sync.instructions": "Créez un projet Firebase gratuit \u2192 Realtime Database \u2192 copiez l'URL.<br>Réglez les règles DB sur <code>\".read\": true, \".write\": true</code>.<br>Tous les joueurs dans la même session voient les animations de dés en direct.",
   "settings.sync.testButton": "🔗 Tester la sync",
+  "settings.sync.storageBucketLabel": "Bucket Firebase Storage (pour MP3)",
+  "settings.sync.storageBucketPlaceholder": "mon-projet.firebasestorage.app",
+  "settings.sync.storageBucketNote": "Optionnel — déduit automatiquement de l'URL Firebase si vide.",
   "settings.character.title": "Sauvegarde du personnage",
   "settings.character.subtitle": "Exportez votre fiche pour ne jamais la perdre, même si le cache est effacé.",
   "settings.character.exportLabel": "Exporter",
@@ -400,7 +403,7 @@ export const fr = {
   // ── Audio (YouTube Sync) ────────────────────────────────────────────────────
   "nav.audio"                  : "Audio",
   "audio.title"                : "Ambiance musicale",
-  "audio.subtitle"             : "YouTube synchronisé — le MJ contrôle la musique pour tous.",
+  "audio.subtitle"             : "YouTube + MP3 synchronisé — le MJ contrôle la musique pour tous.",
   "audio.urlPlaceholder"       : "URL YouTube ou ID vidéo…",
   "audio.loadButton"           : "▶ Charger",
   "audio.nothingPlaying"       : "Aucune musique en cours",
@@ -414,4 +417,9 @@ export const fr = {
   "audio.status.sfxTriggered"  : "SFX \"{name}\" déclenché !",
   "audio.gmHint"               : "Seul le MJ voit ces contrôles.",
   "audio.playerHint"           : "La musique est synchronisée par le MJ.",
+  "audio.uploadMp3"            : "Charger MP3",
+  "audio.status.mp3Loaded"     : "MP3 \"{name}\" chargé.",
+  "audio.status.uploadFailed"  : "Échec de l'upload du fichier audio.",
+  "audio.status.invalidFile"   : "Fichier invalide — sélectionnez un fichier audio.",
+  "audio.status.noBucket"      : "Configurez le bucket Storage dans les paramètres.",
 };

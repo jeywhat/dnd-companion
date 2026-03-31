@@ -1,6 +1,7 @@
 /**
- * Audio feature – YouTube IFrame player + Firebase sync renderer.
+ * Audio feature – YouTube + MP3 dual-source player with Firebase sync.
  * Lazy-loads YouTube IFrame API on first tab visit.
+ * MP3 playback uses native HTML5 Audio element (streaming, no extra deps).
  * GM controls playback; all clients sync state via Firebase RTDB.
  */
 
@@ -14,11 +15,14 @@ import {
 } from "../../adapters/audio-sync.js";
 import { t } from "../../shared/i18n.js";
 
-let _player = null;
+let _ytPlayer = null;
+let _audioEl = null;
 let _apiReady = false;
 let _apiLoading = false;
 let _mounted = false;
 let _currentVideoId = null;
+let _currentTrackUrl = null;
+let _activeSource = null; // "youtube" | "mp3" | null
 let _suppressSync = false;
 let _seekUpdateTimer = 0;
 let _lastRemoteState = {};
@@ -33,13 +37,21 @@ function hasFirebase() {
   return !!(state.settings.firebaseUrl && state.settings.syncRoom);
 }
 
+function publish(patch) {
+  if (!isGM() || !hasFirebase()) return;
+  publishAudioState({
+    firebaseUrl: state.settings.firebaseUrl,
+    roomId: state.settings.syncRoom,
+    patch,
+  });
+}
+
 /**
  * Extract YouTube video ID from various URL formats or raw ID.
  */
 export function extractVideoId(input) {
   if (!input) return null;
   const str = input.trim();
-  // Already a bare ID (11 chars, alphanumeric + _ -)
   if (/^[\w-]{11}$/.test(str)) return str;
   try {
     const url = new URL(str);
@@ -73,94 +85,110 @@ function loadYouTubeAPI() {
   });
 }
 
-function createPlayer() {
+function createYTPlayer() {
   const container = document.getElementById("yt-player-slot");
-  if (!container || _player) return;
+  if (!container || _ytPlayer) return;
 
-  _player = new window.YT.Player("yt-player-slot", {
+  _ytPlayer = new window.YT.Player("yt-player-slot", {
     height: "200",
     width: "100%",
     playerVars: {
-      playsinline: 1,
-      controls: 0,
-      modestbranding: 1,
-      rel: 0,
-      fs: 0,
-      disablekb: 1,
-      origin: window.location.origin,
+      playsinline: 1, controls: 0, modestbranding: 1,
+      rel: 0, fs: 0, disablekb: 1, origin: window.location.origin,
     },
     events: {
-      onReady: onPlayerReady,
-      onStateChange: onPlayerStateChange,
+      onReady: () => {
+        console.info("[Audio] YouTube player ready");
+        if (_lastRemoteState.sourceType !== "mp3" && _lastRemoteState.videoId) {
+          applyRemoteState(_lastRemoteState);
+        }
+      },
+      onStateChange: onYTStateChange,
     },
   });
 }
 
-function onPlayerReady() {
-  console.info("[Audio] YouTube player ready");
-  // Apply last known remote state if we have one
-  if (_lastRemoteState.videoId) {
-    applyRemoteState(_lastRemoteState);
-  }
-}
-
-function onPlayerStateChange(event) {
-  if (_suppressSync || !isGM() || !hasFirebase()) return;
-
-  const ytState = event.data;
-  // YT.PlayerState: -1=unstarted, 0=ended, 1=playing, 2=paused, 3=buffering, 5=cued
-  if (ytState === window.YT.PlayerState.PLAYING) {
-    publishAudioState({
-      firebaseUrl: state.settings.firebaseUrl,
-      roomId: state.settings.syncRoom,
-      patch: {
-        isPlaying: true,
-        position: _player.getCurrentTime(),
-        videoId: _currentVideoId,
-      },
-    });
+function onYTStateChange(event) {
+  if (_suppressSync || !isGM() || !hasFirebase() || _activeSource !== "youtube") return;
+  const s = event.data;
+  if (s === window.YT.PlayerState.PLAYING) {
+    publish({ isPlaying: true, position: _ytPlayer.getCurrentTime(), videoId: _currentVideoId, sourceType: "youtube" });
     startSeekBroadcast();
-  } else if (ytState === window.YT.PlayerState.PAUSED) {
+  } else if (s === window.YT.PlayerState.PAUSED) {
     stopSeekBroadcast();
-    publishAudioState({
-      firebaseUrl: state.settings.firebaseUrl,
-      roomId: state.settings.syncRoom,
-      patch: {
-        isPlaying: false,
-        position: _player.getCurrentTime(),
-      },
-    });
-  } else if (ytState === window.YT.PlayerState.ENDED) {
+    publish({ isPlaying: false, position: _ytPlayer.getCurrentTime() });
+  } else if (s === window.YT.PlayerState.ENDED) {
     stopSeekBroadcast();
-    publishAudioState({
-      firebaseUrl: state.settings.firebaseUrl,
-      roomId: state.settings.syncRoom,
-      patch: { isPlaying: false, position: 0 },
-    });
+    publish({ isPlaying: false, position: 0 });
   }
 }
 
-// Periodically broadcast position while GM is playing (every 5s)
+// ─── HTML5 Audio element (MP3) ───────────────────────────────────────────────
+
+function ensureAudioEl() {
+  if (_audioEl) return _audioEl;
+  _audioEl = new Audio();
+  _audioEl.preload = "auto";
+  _audioEl.crossOrigin = "anonymous";
+
+  _audioEl.addEventListener("play", () => {
+    if (_suppressSync || !isGM() || _activeSource !== "mp3") return;
+    publish({ isPlaying: true, position: _audioEl.currentTime, sourceType: "mp3" });
+    startSeekBroadcast();
+  });
+  _audioEl.addEventListener("pause", () => {
+    if (_suppressSync || !isGM() || _activeSource !== "mp3") return;
+    stopSeekBroadcast();
+    publish({ isPlaying: false, position: _audioEl.currentTime });
+  });
+  _audioEl.addEventListener("ended", () => {
+    if (_suppressSync || !isGM() || _activeSource !== "mp3") return;
+    stopSeekBroadcast();
+    publish({ isPlaying: false, position: 0 });
+  });
+  _audioEl.addEventListener("timeupdate", () => {
+    if (_activeSource !== "mp3") return;
+    updateSeekbarFromTime(_audioEl.currentTime, _audioEl.duration);
+  });
+
+  return _audioEl;
+}
+
+// ─── Shared seek broadcast ───────────────────────────────────────────────────
+
 function startSeekBroadcast() {
   stopSeekBroadcast();
   _seekUpdateTimer = setInterval(() => {
-    if (!_player || !isGM() || !hasFirebase()) return;
-    try {
-      const pos = _player.getCurrentTime();
-      if (typeof pos === "number") {
-        publishAudioState({
-          firebaseUrl: state.settings.firebaseUrl,
-          roomId: state.settings.syncRoom,
-          patch: { position: pos },
-        });
-      }
-    } catch { /* player not ready */ }
+    if (!isGM() || !hasFirebase()) return;
+    const pos = getActivePosition();
+    if (typeof pos === "number") publish({ position: pos });
   }, 5000);
 }
 
 function stopSeekBroadcast() {
   clearInterval(_seekUpdateTimer);
   _seekUpdateTimer = 0;
+}
+
+function getActivePosition() {
+  if (_activeSource === "youtube") {
+    try { return _ytPlayer?.getCurrentTime?.(); } catch { return null; }
+  }
+  if (_activeSource === "mp3") {
+    return _audioEl?.currentTime ?? null;
+  }
+  return null;
+}
+
+function getActiveDuration() {
+  if (_activeSource === "youtube") {
+    try { return _ytPlayer?.getDuration?.() || 0; } catch { return 0; }
+  }
+  if (_activeSource === "mp3") {
+    const d = _audioEl?.duration;
+    return (d && isFinite(d)) ? d : 0;
+  }
+  return 0;
 }
 
 // ─── Remote state ────────────────────────────────────────────────────────────
@@ -174,15 +202,14 @@ function handleRemoteUpdate(type, data) {
     Object.assign(_lastRemoteState, data);
   }
 
-  // Handle SFX trigger
+  // SFX trigger
   if (data.sfx && data.sfx.triggeredBy !== PLAYER_ID) {
-    playSfxLocally(data.sfx.videoId);
+    playSfxLocally(data.sfx);
   }
 
-  // Don't override GM's own player state (they are the source of truth)
+  // GM is source of truth — only apply initial load
   if (isGM()) {
-    // But apply initial video load if needed
-    if (!_currentVideoId && _lastRemoteState.videoId) {
+    if (!_activeSource && (_lastRemoteState.videoId || _lastRemoteState.trackUrl)) {
       applyRemoteState(_lastRemoteState);
     }
     return;
@@ -192,69 +219,134 @@ function handleRemoteUpdate(type, data) {
 }
 
 function applyRemoteState(rs) {
-  if (!_player || typeof _player.loadVideoById !== "function") return;
-
   _suppressSync = true;
   try {
-    if (rs.videoId && rs.videoId !== _currentVideoId) {
-      _currentVideoId = rs.videoId;
-      if (rs.isPlaying) {
-        _player.loadVideoById(rs.videoId, rs.position || 0);
-      } else {
-        _player.cueVideoById(rs.videoId, rs.position || 0);
-      }
-    } else {
-      // Sync position if drift > 3s
-      if (typeof rs.position === "number" && _player.getCurrentTime) {
-        try {
-          const localPos = _player.getCurrentTime();
-          if (Math.abs(localPos - rs.position) > 3) {
-            _player.seekTo(rs.position, true);
-          }
-        } catch { /* player not ready */ }
-      }
-
-      if (rs.isPlaying === true) {
-        try { _player.playVideo(); } catch { /* */ }
-      } else if (rs.isPlaying === false) {
-        try { _player.pauseVideo(); } catch { /* */ }
-      }
+    if (rs.sourceType === "mp3" && rs.trackUrl) {
+      applyMp3State(rs);
+    } else if (rs.videoId) {
+      applyYouTubeState(rs);
     }
-
-    if (typeof rs.volume === "number" && _player.setVolume) {
-      _player.setVolume(rs.volume * 100);
+    if (typeof rs.volume === "number") {
+      setVolumeInternal(rs.volume);
     }
   } finally {
     setTimeout(() => { _suppressSync = false; }, 500);
   }
-
   updatePlayerUI(rs);
 }
 
-function playSfxLocally(videoId) {
-  if (!videoId || !_player || typeof _player.loadVideoById !== "function") return;
-  // SFX: quick play without disrupting main track state
-  // We'll use a temporary load — not ideal but YouTube API only has one player per instance.
-  // For a production-grade solution, use a second hidden player.
-  // For now, show a toast.
-  const sfxLabel = videoId;
-  console.info("[Audio] SFX triggered:", sfxLabel);
+function applyYouTubeState(rs) {
+  if (!_ytPlayer || typeof _ytPlayer.loadVideoById !== "function") return;
+
+  // Stop MP3 if playing
+  if (_activeSource === "mp3" && _audioEl) {
+    _audioEl.pause();
+    _audioEl.src = "";
+  }
+  _activeSource = "youtube";
+  _currentTrackUrl = null;
+  showSource("youtube");
+
+  if (rs.videoId !== _currentVideoId) {
+    _currentVideoId = rs.videoId;
+    if (rs.isPlaying) {
+      _ytPlayer.loadVideoById(rs.videoId, rs.position || 0);
+    } else {
+      _ytPlayer.cueVideoById(rs.videoId, rs.position || 0);
+    }
+  } else {
+    syncPositionYT(rs);
+    if (rs.isPlaying === true) { try { _ytPlayer.playVideo(); } catch {} }
+    else if (rs.isPlaying === false) { try { _ytPlayer.pauseVideo(); } catch {} }
+  }
 }
 
-// ─── UI updates ──────────────────────────────────────────────────────────────
+function syncPositionYT(rs) {
+  if (typeof rs.position !== "number") return;
+  try {
+    const local = _ytPlayer.getCurrentTime();
+    if (Math.abs(local - rs.position) > 3) _ytPlayer.seekTo(rs.position, true);
+  } catch {}
+}
+
+function applyMp3State(rs) {
+  const audio = ensureAudioEl();
+
+  // Stop YouTube if playing
+  if (_activeSource === "youtube" && _ytPlayer) {
+    try { _ytPlayer.pauseVideo(); } catch {}
+  }
+  _activeSource = "mp3";
+  _currentVideoId = null;
+  showSource("mp3");
+
+  if (rs.trackUrl !== _currentTrackUrl) {
+    _currentTrackUrl = rs.trackUrl;
+    audio.src = rs.trackUrl;
+    audio.load();
+    audio.addEventListener("canplay", function onCanPlay() {
+      audio.removeEventListener("canplay", onCanPlay);
+      if (rs.position) audio.currentTime = rs.position;
+      if (rs.isPlaying) audio.play().catch(() => {});
+    });
+  } else {
+    if (typeof rs.position === "number") {
+      const drift = Math.abs(audio.currentTime - rs.position);
+      if (drift > 2) audio.currentTime = rs.position;
+    }
+    if (rs.isPlaying === true && audio.paused) audio.play().catch(() => {});
+    else if (rs.isPlaying === false && !audio.paused) audio.pause();
+  }
+}
+
+function setVolumeInternal(vol) {
+  if (_ytPlayer?.setVolume) _ytPlayer.setVolume(vol * 100);
+  if (_audioEl) _audioEl.volume = vol;
+}
+
+function playSfxLocally(sfx) {
+  const url = sfx?.url || sfx?.videoId;
+  if (!url) return;
+  // Only play if it looks like a direct audio URL (not a YouTube video ID)
+  if (url.startsWith("http")) {
+    try {
+      const sfxAudio = new Audio(url);
+      sfxAudio.volume = 0.9;
+      sfxAudio.play().catch(() => {});
+    } catch {}
+  } else {
+    console.info("[Audio] SFX triggered (YouTube):", sfx?.label || url);
+  }
+}
+
+// ─── UI ──────────────────────────────────────────────────────────────────────
+
+function showSource(source) {
+  const ytWrap = document.querySelector(".audio-yt-wrap");
+  const mp3Wrap = document.querySelector(".audio-mp3-wrap");
+  if (ytWrap) ytWrap.hidden = source === "mp3";
+  if (mp3Wrap) mp3Wrap.hidden = source !== "mp3";
+}
+
+function updateSeekbarFromTime(currentTime, duration) {
+  const seekbar = document.getElementById("audio-seekbar");
+  if (seekbar && duration > 0 && !seekbar.matches(":active")) {
+    seekbar.value = String((currentTime / duration) * 100);
+  }
+  const timeDisplay = document.querySelector("[data-audio-time]");
+  if (timeDisplay && duration > 0) {
+    timeDisplay.textContent = `${fmtTime(currentTime)} / ${fmtTime(duration)}`;
+  }
+}
 
 function updatePlayerUI(rs) {
   const playBtn = document.querySelector("[data-action='audio-playpause']");
-  if (playBtn) {
-    playBtn.textContent = rs?.isPlaying ? "⏸️" : "▶️";
-  }
+  if (playBtn) playBtn.textContent = rs?.isPlaying ? "⏸️" : "▶️";
 
   const seekbar = document.getElementById("audio-seekbar");
   if (seekbar && typeof rs?.position === "number" && !seekbar.matches(":active")) {
-    const duration = getDuration();
-    if (duration > 0) {
-      seekbar.value = String((rs.position / duration) * 100);
-    }
+    const dur = getActiveDuration();
+    if (dur > 0) seekbar.value = String((rs.position / dur) * 100);
   }
 
   const volSlider = document.getElementById("audio-volume");
@@ -264,14 +356,28 @@ function updatePlayerUI(rs) {
 
   const nowPlaying = document.querySelector("[data-audio-now-playing]");
   if (nowPlaying) {
-    nowPlaying.textContent = _currentVideoId
-      ? `🎵 ${_currentVideoId}`
-      : t("audio.nothingPlaying");
+    if (rs?.sourceType === "mp3" && rs.trackName) {
+      nowPlaying.textContent = `🎵 ${rs.trackName}`;
+    } else if (_currentVideoId) {
+      nowPlaying.textContent = `📺 YouTube: ${_currentVideoId}`;
+    } else {
+      nowPlaying.textContent = t("audio.nothingPlaying");
+    }
+  }
+
+  const timeDisplay = document.querySelector("[data-audio-time]");
+  if (timeDisplay) {
+    const dur = getActiveDuration();
+    const pos = rs?.position ?? 0;
+    timeDisplay.textContent = dur > 0 ? `${fmtTime(pos)} / ${fmtTime(dur)}` : "";
   }
 }
 
-function getDuration() {
-  try { return _player?.getDuration?.() || 0; } catch { return 0; }
+function fmtTime(s) {
+  if (!s || !isFinite(s)) return "0:00";
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  return `${m}:${sec.toString().padStart(2, "0")}`;
 }
 
 // ─── Mount ───────────────────────────────────────────────────────────────────
@@ -280,13 +386,10 @@ async function mount() {
   if (_mounted) return;
   _mounted = true;
 
+  ensureAudioEl();
   await loadYouTubeAPI();
-  // Check container still exists after async load
-  if (!document.getElementById("yt-player-slot")) {
-    _mounted = false;
-    return;
-  }
-  createPlayer();
+  if (!document.getElementById("yt-player-slot")) { _mounted = false; return; }
+  createYTPlayer();
 
   if (hasFirebase()) {
     connectAudioSync({
@@ -295,8 +398,7 @@ async function mount() {
       onRemoteUpdate: handleRemoteUpdate,
     });
   }
-
-  console.info("[Audio] Monté");
+  console.info("[Audio] Monté (YouTube + MP3)");
 }
 
 // ─── Public API ──────────────────────────────────────────────────────────────
@@ -305,11 +407,12 @@ export function renderAudio() {
   if (state.ui.activeTab === "audio" && !_mounted) {
     mount();
   }
-  // Update GM-only controls visibility
   const gmControls = document.querySelectorAll(".audio-gm-only");
-  for (const el of gmControls) {
-    el.hidden = !isGM();
-  }
+  for (const el of gmControls) el.hidden = !isGM();
+
+  // Show player hint for non-GM
+  const hint = document.querySelector("[data-audio-player-hint]");
+  if (hint) hint.hidden = isGM();
 }
 
 export function reconnectAudioSync() {
@@ -325,116 +428,129 @@ export function reconnectAudioSync() {
 // ─── Player Controls (called by handler) ─────────────────────────────────────
 
 export function audioPlayPause() {
-  if (!_player || !isGM()) return;
-  try {
-    const st = _player.getPlayerState();
-    if (st === window.YT.PlayerState.PLAYING) {
-      _player.pauseVideo();
-    } else {
-      _player.playVideo();
-    }
-  } catch { /* player not ready */ }
+  if (!isGM()) return;
+  if (_activeSource === "mp3" && _audioEl) {
+    if (_audioEl.paused) _audioEl.play().catch(() => {});
+    else _audioEl.pause();
+  } else if (_activeSource === "youtube" && _ytPlayer) {
+    try {
+      const s = _ytPlayer.getPlayerState();
+      if (s === window.YT.PlayerState.PLAYING) _ytPlayer.pauseVideo();
+      else _ytPlayer.playVideo();
+    } catch {}
+  } else if (_ytPlayer) {
+    // No active source — try to resume YouTube
+    try { _ytPlayer.playVideo(); } catch {}
+  }
 }
 
 export function audioLoadVideo(input) {
   const videoId = extractVideoId(input);
-  if (!videoId || !_player) return false;
+  if (!videoId) return false;
+  if (!_ytPlayer) return false;
 
-  _currentVideoId = videoId;
-  _player.loadVideoById(videoId, 0);
-
-  if (isGM() && hasFirebase()) {
-    publishAudioState({
-      firebaseUrl: state.settings.firebaseUrl,
-      roomId: state.settings.syncRoom,
-      patch: { videoId, position: 0, isPlaying: true },
-    });
+  // Switch to YouTube
+  if (_activeSource === "mp3" && _audioEl) {
+    _audioEl.pause();
+    _audioEl.src = "";
   }
+  _activeSource = "youtube";
+  _currentVideoId = videoId;
+  _currentTrackUrl = null;
+  showSource("youtube");
+  _ytPlayer.loadVideoById(videoId, 0);
+
+  publish({ videoId, position: 0, isPlaying: true, sourceType: "youtube", trackUrl: "", trackName: "" });
+  return true;
+}
+
+export function audioLoadMp3(url, name) {
+  if (!url) return false;
+  const audio = ensureAudioEl();
+
+  // Switch to MP3
+  if (_activeSource === "youtube" && _ytPlayer) {
+    try { _ytPlayer.pauseVideo(); } catch {}
+  }
+  _activeSource = "mp3";
+  _currentVideoId = null;
+  _currentTrackUrl = url;
+  showSource("mp3");
+
+  audio.src = url;
+  audio.load();
+  audio.addEventListener("canplay", function onCanPlay() {
+    audio.removeEventListener("canplay", onCanPlay);
+    audio.play().catch(() => {});
+  });
+
+  publish({ trackUrl: url, trackName: name || "MP3", position: 0, isPlaying: true, sourceType: "mp3", videoId: "" });
   return true;
 }
 
 export function audioSeek(fraction) {
-  if (!_player || !isGM()) return;
-  const duration = getDuration();
+  if (!isGM()) return;
+  const duration = getActiveDuration();
   if (duration <= 0) return;
   const pos = fraction * duration;
-  _player.seekTo(pos, true);
-  publishAudioState({
-    firebaseUrl: state.settings.firebaseUrl,
-    roomId: state.settings.syncRoom,
-    patch: { position: pos },
-  });
+
+  if (_activeSource === "mp3" && _audioEl) {
+    _audioEl.currentTime = pos;
+  } else if (_activeSource === "youtube" && _ytPlayer) {
+    _ytPlayer.seekTo(pos, true);
+  }
+  publish({ position: pos });
 }
 
 export function audioSetVolume(value) {
-  if (!_player) return;
   const vol = Math.max(0, Math.min(1, value));
-  _player.setVolume(vol * 100);
-  if (isGM() && hasFirebase()) {
-    publishAudioState({
-      firebaseUrl: state.settings.firebaseUrl,
-      roomId: state.settings.syncRoom,
-      patch: { volume: vol },
-    });
-  }
+  setVolumeInternal(vol);
+  publish({ volume: vol });
 }
 
-export function audioTriggerSfx(videoId, label) {
+export function audioTriggerSfx(sfxUrl, label) {
   if (!isGM() || !hasFirebase()) return;
   // Play locally
-  if (_player && typeof _player.loadVideoById === "function") {
-    // Save current state to restore after SFX
-    const savedId = _currentVideoId;
-    const savedPos = _player.getCurrentTime?.() || 0;
-    const savedPlaying = _player.getPlayerState?.() === window.YT?.PlayerState?.PLAYING;
-
-    _suppressSync = true;
-    _player.loadVideoById(videoId, 0);
-
-    // Restore after 4 seconds (short SFX)
-    setTimeout(() => {
-      if (savedId) {
-        _currentVideoId = savedId;
-        if (savedPlaying) {
-          _player.loadVideoById(savedId, savedPos + 4);
-        } else {
-          _player.cueVideoById(savedId, savedPos);
-        }
-      }
-      _suppressSync = false;
-    }, 4000);
-  }
-  // Broadcast to all players
+  try {
+    const sfxAudio = new Audio(sfxUrl);
+    sfxAudio.volume = 0.9;
+    sfxAudio.play().catch(() => {});
+  } catch {}
+  // Broadcast
   publishSfx({
     firebaseUrl: state.settings.firebaseUrl,
     roomId: state.settings.syncRoom,
-    videoId,
+    videoId: sfxUrl,
     label,
   });
 }
 
 export function audioStop() {
-  if (!_player || !isGM()) return;
-  try {
-    _player.stopVideo();
-    stopSeekBroadcast();
-    _currentVideoId = null;
-    if (hasFirebase()) {
-      publishAudioState({
-        firebaseUrl: state.settings.firebaseUrl,
-        roomId: state.settings.syncRoom,
-        patch: { isPlaying: false, position: 0, videoId: "" },
-      });
-    }
-  } catch { /* */ }
+  if (!isGM()) return;
+  stopSeekBroadcast();
+  if (_activeSource === "mp3" && _audioEl) {
+    _audioEl.pause();
+    _audioEl.currentTime = 0;
+  }
+  if (_activeSource === "youtube" && _ytPlayer) {
+    try { _ytPlayer.stopVideo(); } catch {}
+  }
+  _activeSource = null;
+  _currentVideoId = null;
+  _currentTrackUrl = null;
+  publish({ isPlaying: false, position: 0, videoId: "", trackUrl: "", trackName: "", sourceType: "" });
 }
 
 export function destroyAudio() {
   disconnectAudioSync();
   stopSeekBroadcast();
-  if (_player?.destroy) _player.destroy();
-  _player = null;
+  if (_ytPlayer?.destroy) _ytPlayer.destroy();
+  if (_audioEl) { _audioEl.pause(); _audioEl.src = ""; }
+  _ytPlayer = null;
+  _audioEl = null;
   _mounted = false;
+  _activeSource = null;
   _currentVideoId = null;
+  _currentTrackUrl = null;
   _lastRemoteState = {};
 }

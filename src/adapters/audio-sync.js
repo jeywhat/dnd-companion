@@ -94,6 +94,7 @@ export async function publishSfx({ firebaseUrl, roomId, videoId, label }) {
   const url = `${buildAudioBase(firebaseUrl, roomId)}/sfx.json`;
   const body = JSON.stringify({
     videoId,
+    url: videoId,
     label,
     triggeredBy: PLAYER_ID,
     timestamp: Date.now(),

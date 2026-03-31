@@ -168,6 +168,9 @@ export const en = {
   "settings.sync.diceColorNote": "Visible to other players on their screens",
   "settings.sync.instructions": "Create a free Firebase project \u2192 Realtime Database \u2192 copy the URL.<br>Set DB rules to <code>\".read\": true, \".write\": true</code>.<br>All players in the same session see live dice animations.",
   "settings.sync.testButton": "\uD83D\uDD17 Test Sync",
+  "settings.sync.storageBucketLabel": "Firebase Storage Bucket (for MP3)",
+  "settings.sync.storageBucketPlaceholder": "my-project.firebasestorage.app",
+  "settings.sync.storageBucketNote": "Optional — automatically derived from Firebase URL if empty.",
   "settings.character.title": "Character Backup",
   "settings.character.subtitle": "Export your character sheet to never lose it, even if cache is cleared.",
   "settings.character.exportLabel": "Export",
@@ -400,7 +403,7 @@ export const en = {
   // ── Audio (YouTube Sync) ────────────────────────────────────────────────────
   "nav.audio"                  : "Audio",
   "audio.title"                : "Music Ambiance",
-  "audio.subtitle"             : "Synced YouTube — the GM controls music for everyone.",
+  "audio.subtitle"             : "YouTube + MP3 synced — the GM controls music for everyone.",
   "audio.urlPlaceholder"       : "YouTube URL or video ID…",
   "audio.loadButton"           : "▶ Load",
   "audio.nothingPlaying"       : "Nothing playing",
@@ -414,4 +417,9 @@ export const en = {
   "audio.status.sfxTriggered"  : "SFX \"{name}\" triggered!",
   "audio.gmHint"               : "Only the GM sees these controls.",
   "audio.playerHint"           : "Music is synced by the GM.",
+  "audio.uploadMp3"            : "Load MP3",
+  "audio.status.mp3Loaded"     : "MP3 \"{name}\" loaded.",
+  "audio.status.uploadFailed"  : "Audio file upload failed.",
+  "audio.status.invalidFile"   : "Invalid file — please select an audio file.",
+  "audio.status.noBucket"      : "Configure the Storage bucket in settings.",
 };

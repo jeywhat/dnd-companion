@@ -9,7 +9,7 @@ import { handleGrimoireAction, handleGrimoireSubmit } from "../features/grimoire
 import { handleCharacterInput, handleCharacterChange, handleCharacterSubmit, handleCharacterAction } from "../features/character/handler.js";
 import { handleSettingsAction, handleSettingsInput } from "../features/settings/handler.js";
 import { handleRoomAction } from "../features/room/handler.js";
-import { handleAudioAction, handleAudioInput } from "../features/audio/handler.js";
+import { handleAudioAction, handleAudioInput, handleMp3FileChange } from "../features/audio/handler.js";
 
 function switchTab(tab) {
   if (tab === state.ui.activeTab) return;
@@ -61,6 +61,11 @@ function handleChange(event) {
   const target = event.target;
 
   if (!(target instanceof HTMLInputElement) && !(target instanceof HTMLSelectElement)) {
+    return;
+  }
+
+  if (target.id === "audio-mp3-file") {
+    handleMp3FileChange(target);
     return;
   }
 
