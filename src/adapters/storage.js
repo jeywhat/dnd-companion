@@ -52,22 +52,65 @@ function sanitiseSpellSlots(raw) {
 }
 
 function sanitiseInventory(raw) {
-  if (!raw || typeof raw !== "object") return { items: [] };
+  if (!raw || typeof raw !== "object") return { containers: [] };
 
-  const items = sanitiseArray(raw.items)
-    .filter((item) => item && typeof item.name === "string" && item.name.trim())
-    .map((item) => ({
-      id: typeof item.id === "string" && item.id ? item.id : `inv-${Date.now()}`,
-      name: String(item.name).trim().slice(0, 100),
-      sizeX: clamp(toInt(item.sizeX, 1), 1, 8),
-      sizeY: clamp(toInt(item.sizeY, 1), 1, 4),
-      emoji: typeof item.emoji === "string" ? item.emoji.slice(0, 8) : "📦",
-      weight: Math.max(parseFloat(item.weight) || 0, 0),
-      col: clamp(toInt(item.col, 0), 0, 7),
-      row: clamp(toInt(item.row, 0), 0, 3),
-    }));
+  // V1 migration: flat items[] → single container
+  if (Array.isArray(raw.items) && !raw.containers) {
+    const items = sanitiseArray(raw.items)
+      .filter((item) => item && typeof item.name === "string" && item.name.trim())
+      .map((item) => ({
+        id: typeof item.id === "string" && item.id ? item.id : `inv-${Date.now()}`,
+        name: String(item.name).trim().slice(0, 100),
+        sizeX: clamp(toInt(item.sizeX, 1), 1, 8),
+        sizeY: clamp(toInt(item.sizeY, 1), 1, 4),
+        emoji: typeof item.emoji === "string" ? item.emoji.slice(0, 8) : "📦",
+        weight: Math.max(parseFloat(item.weight) || 0, 0),
+        col: clamp(toInt(item.col, 0), 0, 7),
+        row: clamp(toInt(item.row, 0), 0, 3),
+      }));
 
-  return { items };
+    if (items.length === 0) return { containers: [] };
+
+    return {
+      containers: [{
+        id: `bag-migrated-${Date.now()}`,
+        name: "Sac à dos",
+        emoji: "🎒",
+        cols: 8,
+        rows: 4,
+        items,
+      }],
+    };
+  }
+
+  const containers = sanitiseArray(raw.containers)
+    .filter((c) => c && typeof c === "object")
+    .map((c) => {
+      const cols = clamp(toInt(c.cols, 6), 1, 12);
+      const rows = clamp(toInt(c.rows, 4), 1, 8);
+
+      return {
+        id: typeof c.id === "string" && c.id ? c.id : `bag-${Date.now()}`,
+        name: typeof c.name === "string" ? c.name.trim().slice(0, 60) : "Sac",
+        emoji: typeof c.emoji === "string" ? c.emoji.slice(0, 8) : "🎒",
+        cols,
+        rows,
+        items: sanitiseArray(c.items)
+          .filter((item) => item && typeof item.name === "string" && item.name.trim())
+          .map((item) => ({
+            id: typeof item.id === "string" && item.id ? item.id : `inv-${Date.now()}`,
+            name: String(item.name).trim().slice(0, 100),
+            sizeX: clamp(toInt(item.sizeX, 1), 1, cols),
+            sizeY: clamp(toInt(item.sizeY, 1), 1, rows),
+            emoji: typeof item.emoji === "string" ? item.emoji.slice(0, 8) : "📦",
+            weight: Math.max(parseFloat(item.weight) || 0, 0),
+            col: clamp(toInt(item.col, 0), 0, cols - 1),
+            row: clamp(toInt(item.row, 0), 0, rows - 1),
+          })),
+      };
+    });
+
+  return { containers };
 }
 
 export function sanitiseState(rawState) {

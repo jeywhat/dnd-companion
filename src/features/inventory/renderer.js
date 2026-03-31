@@ -1,8 +1,8 @@
 import { appElement, state } from "../../app/store.js";
 import { escapeHtml } from "../../shared/dom.js";
 import { t } from "../../shared/i18n.js";
-import { GRID_COLS, GRID_ROWS, CELL_SIZE, CELL_GAP, canPlace, totalWeight } from "./grid.js";
-import { getItemTemplates, moveItem, placeItemAt } from "./handler.js";
+import { CELL_SIZE, CELL_GAP, canPlace, totalWeight } from "./grid.js";
+import { getItemTemplates, getContainerPresets, moveItem, placeItemAt, CONTAINER_PRESETS } from "./handler.js";
 
 let dragState = null;
 
@@ -10,9 +10,11 @@ export function renderInventory() {
   const container = appElement.querySelector("[data-inventory]");
   if (!container) return;
 
-  const items = state.inventory?.items || [];
-  const weight = totalWeight(items);
+  const containers = state.inventory?.containers || [];
+  const weight = totalWeight(containers);
   const templates = getItemTemplates();
+  const presets = getContainerPresets();
+  const totalItems = containers.reduce((s, c) => s + c.items.length, 0);
 
   container.innerHTML = `
     <article class="card">
@@ -21,82 +23,34 @@ export function renderInventory() {
           <h2>${t("inventory.title")}</h2>
           <p class="muted">${t("inventory.subtitle")}</p>
         </div>
-        <span class="pill">${t("inventory.weight", { value: weight.toFixed(1) })}</span>
-      </div>
-
-      <div class="inv-grid-wrapper">
-        <div class="inv-grid" data-inv-grid>
-          ${buildGridCells()}
-          ${buildGridItems(items)}
+        <div class="inv-header-pills">
+          <span class="pill">${t("inventory.weight", { value: weight.toFixed(1) })}</span>
+          <span class="pill">${t("inventory.itemCount", { count: totalItems })}</span>
         </div>
       </div>
+
+      ${containers.length === 0 ? `
+        <p class="empty-state">${t("inventory.empty")}</p>
+      ` : ""}
     </article>
+
+    ${containers.map((bag) => buildContainerCard(bag, templates)).join("")}
 
     <article class="card">
       <div class="section-heading">
         <div>
-          <h2>${t("inventory.palette.title")}</h2>
-          <p class="muted">${t("inventory.palette.subtitle")}</p>
+          <h2>${t("inventory.addContainer.title")}</h2>
+          <p class="muted">${t("inventory.addContainer.subtitle")}</p>
         </div>
       </div>
-      <div class="inv-palette" data-inv-palette>
-        ${templates.map((tmpl) => `
-          <div class="inv-palette-item"
-            data-template-key="${tmpl.key}"
-            data-size-x="${tmpl.sizeX}"
-            data-size-y="${tmpl.sizeY}">
-            <span class="inv-palette-emoji">${tmpl.emoji}</span>
-            <span class="inv-palette-name">${escapeHtml(tmpl.name)}</span>
-            <span class="inv-palette-size">${tmpl.sizeX}×${tmpl.sizeY}</span>
-          </div>
+      <div class="inv-container-presets">
+        ${presets.map((p) => `
+          <button type="button" class="inv-preset-btn" data-action="add-container" data-preset-key="${p.key}">
+            <span class="inv-preset-emoji">${p.emoji}</span>
+            <span class="inv-preset-name">${escapeHtml(p.name)}</span>
+            <span class="inv-preset-size">${p.cols}×${p.rows}</span>
+          </button>
         `).join("")}
-      </div>
-    </article>
-
-    <article class="card">
-      <div class="section-heading">
-        <div>
-          <h2>${t("inventory.custom.title")}</h2>
-          <p class="muted">${t("inventory.custom.subtitle")}</p>
-        </div>
-      </div>
-      <div class="inv-custom-form" data-custom-item-form>
-        <div class="inv-custom-row">
-          <label class="field">
-            <span>${t("inventory.custom.name")}</span>
-            <input type="text" data-field="name" maxlength="50"
-              placeholder="${t("inventory.custom.namePlaceholder")}">
-          </label>
-          <label class="field" style="max-width:5rem">
-            <span>${t("inventory.custom.emoji")}</span>
-            <input type="text" data-field="emoji" maxlength="4" placeholder="📦">
-          </label>
-        </div>
-        <div class="inv-custom-row">
-          <label class="field">
-            <span>${t("inventory.custom.width")}</span>
-            <select data-field="sizeX">
-              <option value="1">1</option>
-              <option value="2">2</option>
-            </select>
-          </label>
-          <label class="field">
-            <span>${t("inventory.custom.height")}</span>
-            <select data-field="sizeY">
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-            </select>
-          </label>
-          <label class="field">
-            <span>${t("inventory.custom.weight")}</span>
-            <input type="number" data-field="weight" min="0" step="0.1" value="0.1">
-          </label>
-        </div>
-        <button type="button" class="primary-action" data-action="add-custom-item">
-          ${t("inventory.custom.addButton")}
-        </button>
       </div>
     </article>
 
@@ -115,14 +69,109 @@ export function renderInventory() {
     </article>
   `;
 
-  setupDragDrop(container);
+  setupAllDragDrop(container);
 }
 
-function buildGridCells() {
+function buildContainerCard(bag, templates) {
+  const slotCount = bag.cols * bag.rows;
+  const usedSlots = bag.items.reduce((s, item) => s + item.sizeX * item.sizeY, 0);
+
+  return `
+    <article class="card inv-container-card" data-container-id="${bag.id}">
+      <div class="section-heading">
+        <div>
+          <h2>${bag.emoji} ${escapeHtml(bag.name)}</h2>
+          <p class="muted">${bag.cols}×${bag.rows} — ${usedSlots}/${slotCount} ${t("inventory.slotsUsed")}</p>
+        </div>
+        <div class="inv-container-actions">
+          <div class="inv-resize-dropdown">
+            <button type="button" class="pill inv-resize-btn" title="${t("inventory.resize")}">↔</button>
+            <div class="inv-resize-menu">
+              ${CONTAINER_PRESETS.map((p) => `
+                <button type="button" class="inv-resize-option${p.cols === bag.cols && p.rows === bag.rows ? " active" : ""}"
+                  data-action="resize-container"
+                  data-container-id="${bag.id}"
+                  data-preset-key="${p.key}">
+                  ${p.emoji} ${t(`inventory.container.${p.key}`)} <span class="muted">${p.cols}×${p.rows}</span>
+                </button>
+              `).join("")}
+            </div>
+          </div>
+          <button type="button" class="pill danger-pill"
+            data-action="remove-container"
+            data-container-id="${bag.id}"
+            title="${t("inventory.removeContainer")}">✕</button>
+        </div>
+      </div>
+
+      <div class="inv-grid-wrapper">
+        <div class="inv-grid" data-inv-grid="${bag.id}"
+          style="grid-template-columns:repeat(${bag.cols},${CELL_SIZE}px);grid-template-rows:repeat(${bag.rows},${CELL_SIZE}px)">
+          ${buildGridCells(bag.cols, bag.rows)}
+          ${buildGridItems(bag.items)}
+        </div>
+      </div>
+
+      <details class="inv-palette-details">
+        <summary>${t("inventory.palette.title")}</summary>
+        <div class="inv-palette" data-inv-palette="${bag.id}">
+          ${templates.map((tmpl) => `
+            <div class="inv-palette-item"
+              data-template-key="${tmpl.key}"
+              data-size-x="${tmpl.sizeX}"
+              data-size-y="${tmpl.sizeY}">
+              <span class="inv-palette-emoji">${tmpl.emoji}</span>
+              <span class="inv-palette-name">${escapeHtml(tmpl.name)}</span>
+              <span class="inv-palette-size">${tmpl.sizeX}×${tmpl.sizeY}</span>
+            </div>
+          `).join("")}
+        </div>
+
+        <div class="inv-custom-form" data-custom-item-form>
+          <p class="muted" style="margin:0.5rem 0 0.25rem;font-size:0.8rem">${t("inventory.custom.title")}</p>
+          <div class="inv-custom-row">
+            <label class="field">
+              <span>${t("inventory.custom.name")}</span>
+              <input type="text" data-field="name" maxlength="50"
+                placeholder="${t("inventory.custom.namePlaceholder")}">
+            </label>
+            <label class="field" style="max-width:5rem">
+              <span>${t("inventory.custom.emoji")}</span>
+              <input type="text" data-field="emoji" maxlength="4" placeholder="📦">
+            </label>
+          </div>
+          <div class="inv-custom-row">
+            <label class="field">
+              <span>${t("inventory.custom.width")}</span>
+              <select data-field="sizeX">
+                ${Array.from({ length: Math.min(bag.cols, 4) }, (_, i) => `<option value="${i + 1}">${i + 1}</option>`).join("")}
+              </select>
+            </label>
+            <label class="field">
+              <span>${t("inventory.custom.height")}</span>
+              <select data-field="sizeY">
+                ${Array.from({ length: Math.min(bag.rows, 6) }, (_, i) => `<option value="${i + 1}">${i + 1}</option>`).join("")}
+              </select>
+            </label>
+            <label class="field">
+              <span>${t("inventory.custom.weight")}</span>
+              <input type="number" data-field="weight" min="0" step="0.1" value="0.1">
+            </label>
+          </div>
+          <button type="button" class="primary-action" data-action="add-custom-item">
+            ${t("inventory.custom.addButton")}
+          </button>
+        </div>
+      </details>
+    </article>
+  `;
+}
+
+function buildGridCells(cols, rows) {
   let html = "";
 
-  for (let row = 0; row < GRID_ROWS; row++) {
-    for (let col = 0; col < GRID_COLS; col++) {
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
       html += `<div class="inv-cell" data-inv-cell data-col="${col}" data-row="${row}"
         style="grid-column:${col + 1};grid-row:${row + 1}"></div>`;
     }
@@ -147,29 +196,34 @@ function buildGridItems(items) {
 
 // ── Drag & Drop ─────────────────────────────────────────────────────────────
 
-function setupDragDrop(container) {
-  const grid = container.querySelector("[data-inv-grid]");
-  const palette = container.querySelector("[data-inv-palette]");
-  if (!grid || !palette) return;
+function setupAllDragDrop(root) {
+  for (const card of root.querySelectorAll("[data-container-id]")) {
+    const containerId = card.dataset.containerId;
+    const grid = card.querySelector(`[data-inv-grid="${containerId}"]`);
+    const palette = card.querySelector(`[data-inv-palette="${containerId}"]`);
+    if (!grid) continue;
 
-  for (const paletteItem of palette.querySelectorAll(".inv-palette-item")) {
-    paletteItem.addEventListener("pointerdown", (e) => {
-      if (e.button !== 0) return;
-      e.preventDefault();
-      startDragFromPalette(e, paletteItem, grid);
-    });
-  }
+    if (palette) {
+      for (const paletteItem of palette.querySelectorAll(".inv-palette-item")) {
+        paletteItem.addEventListener("pointerdown", (e) => {
+          if (e.button !== 0) return;
+          e.preventDefault();
+          startDragFromPalette(e, paletteItem, grid, containerId);
+        });
+      }
+    }
 
-  for (const gridItem of grid.querySelectorAll(".inv-item")) {
-    gridItem.addEventListener("pointerdown", (e) => {
-      if (e.button !== 0 || e.target.closest("[data-action]")) return;
-      e.preventDefault();
-      startDragFromGrid(e, gridItem, grid);
-    });
+    for (const gridItem of grid.querySelectorAll(".inv-item")) {
+      gridItem.addEventListener("pointerdown", (e) => {
+        if (e.button !== 0 || e.target.closest("[data-action]")) return;
+        e.preventDefault();
+        startDragFromGrid(e, gridItem, grid, containerId);
+      });
+    }
   }
 }
 
-function startDragFromPalette(e, paletteItem, grid) {
+function startDragFromPalette(e, paletteItem, grid, containerId) {
   const key = paletteItem.dataset.templateKey;
   const sizeX = parseInt(paletteItem.dataset.sizeX);
   const sizeY = parseInt(paletteItem.dataset.sizeY);
@@ -177,6 +231,7 @@ function startDragFromPalette(e, paletteItem, grid) {
   dragState = {
     type: "palette",
     templateKey: key,
+    containerId,
     sizeX,
     sizeY,
     ghost: createGhost(paletteItem, sizeX, sizeY, e),
@@ -187,14 +242,16 @@ function startDragFromPalette(e, paletteItem, grid) {
   document.addEventListener("pointerup", onDragEnd);
 }
 
-function startDragFromGrid(e, gridItem, grid) {
+function startDragFromGrid(e, gridItem, grid, containerId) {
   const itemId = gridItem.dataset.invItem;
-  const item = state.inventory.items.find((i) => i.id === itemId);
+  const container = state.inventory.containers.find((c) => c.id === containerId);
+  const item = container?.items.find((i) => i.id === itemId);
   if (!item) return;
 
   dragState = {
     type: "grid",
     itemId,
+    containerId,
     sizeX: item.sizeX,
     sizeY: item.sizeY,
     ghost: createGhost(gridItem, item.sizeX, item.sizeY, e),
@@ -231,10 +288,13 @@ function onDragMove(e) {
   ghost.style.top = `${e.clientY - ghost.offsetHeight / 2}px`;
 
   clearHighlights(dragState.grid);
-  const cell = getCellUnderPointer(e, dragState.grid);
+  const container = state.inventory.containers.find((c) => c.id === dragState.containerId);
+  if (!container) return;
+
+  const cell = getCellUnderPointer(e, dragState.grid, container.cols, container.rows);
 
   if (cell) {
-    highlightCells(dragState.grid, cell.col, cell.row, dragState.sizeX, dragState.sizeY);
+    highlightCells(dragState.grid, container, cell.col, cell.row, dragState.sizeX, dragState.sizeY);
   }
 }
 
@@ -247,15 +307,18 @@ function onDragEnd(e) {
   dragState.ghost.remove();
   clearHighlights(dragState.grid);
 
-  const cell = getCellUnderPointer(e, dragState.grid);
+  const container = state.inventory.containers.find((c) => c.id === dragState.containerId);
+  const cell = container
+    ? getCellUnderPointer(e, dragState.grid, container.cols, container.rows)
+    : null;
   const ds = dragState;
   dragState = null;
 
   if (cell) {
     if (ds.type === "palette") {
-      placeItemAt(ds.templateKey, cell.col, cell.row);
+      placeItemAt(ds.containerId, ds.templateKey, cell.col, cell.row);
     } else if (ds.type === "grid") {
-      moveItem(ds.itemId, cell.col, cell.row);
+      moveItem(ds.containerId, ds.itemId, cell.col, cell.row);
     }
   } else if (ds.type === "grid") {
     const dragging = ds.grid.querySelector(`[data-inv-item="${ds.itemId}"]`);
@@ -263,7 +326,7 @@ function onDragEnd(e) {
   }
 }
 
-function getCellUnderPointer(e, grid) {
+function getCellUnderPointer(e, grid, cols, rows) {
   const rect = grid.getBoundingClientRect();
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
@@ -274,17 +337,16 @@ function getCellUnderPointer(e, grid) {
   const col = Math.floor(x / step);
   const row = Math.floor(y / step);
 
-  if (col >= 0 && col < GRID_COLS && row >= 0 && row < GRID_ROWS) {
+  if (col >= 0 && col < cols && row >= 0 && row < rows) {
     return { col, row };
   }
 
   return null;
 }
 
-function highlightCells(grid, col, row, sizeX, sizeY) {
-  const items = state.inventory?.items || [];
+function highlightCells(grid, container, col, row, sizeX, sizeY) {
   const excludeId = dragState?.type === "grid" ? dragState.itemId : null;
-  const valid = canPlace(items, col, row, sizeX, sizeY, excludeId);
+  const valid = canPlace(container.items, container.cols, container.rows, col, row, sizeX, sizeY, excludeId);
   const cls = valid ? "inv-cell-valid" : "inv-cell-invalid";
 
   for (let dy = 0; dy < sizeY; dy++) {
@@ -292,7 +354,7 @@ function highlightCells(grid, col, row, sizeX, sizeY) {
       const c = col + dx;
       const r = row + dy;
 
-      if (c < GRID_COLS && r < GRID_ROWS) {
+      if (c < container.cols && r < container.rows) {
         const cell = grid.querySelector(`[data-col="${c}"][data-row="${r}"]`);
         if (cell) cell.classList.add(cls);
       }

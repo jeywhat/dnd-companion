@@ -1,10 +1,10 @@
-export const GRID_COLS = 8;
-export const GRID_ROWS = 4;
 export const CELL_SIZE = 64;
 export const CELL_GAP = 2;
+export const MAX_COLS = 12;
+export const MAX_ROWS = 8;
 
-export function buildOccupancy(items) {
-  const grid = Array.from({ length: GRID_ROWS }, () => Array(GRID_COLS).fill(null));
+export function buildOccupancy(items, cols, rows) {
+  const grid = Array.from({ length: rows }, () => Array(cols).fill(null));
 
   for (const item of items) {
     for (let dy = 0; dy < item.sizeY; dy++) {
@@ -12,7 +12,7 @@ export function buildOccupancy(items) {
         const r = item.row + dy;
         const c = item.col + dx;
 
-        if (r < GRID_ROWS && c < GRID_COLS) {
+        if (r < rows && c < cols) {
           grid[r][c] = item.id;
         }
       }
@@ -22,13 +22,13 @@ export function buildOccupancy(items) {
   return grid;
 }
 
-export function canPlace(items, col, row, sizeX, sizeY, excludeId = null) {
-  if (col < 0 || row < 0 || col + sizeX > GRID_COLS || row + sizeY > GRID_ROWS) {
+export function canPlace(items, cols, rows, col, row, sizeX, sizeY, excludeId = null) {
+  if (col < 0 || row < 0 || col + sizeX > cols || row + sizeY > rows) {
     return false;
   }
 
   const filtered = excludeId ? items.filter((i) => i.id !== excludeId) : items;
-  const grid = buildOccupancy(filtered);
+  const grid = buildOccupancy(filtered, cols, rows);
 
   for (let dy = 0; dy < sizeY; dy++) {
     for (let dx = 0; dx < sizeX; dx++) {
@@ -39,10 +39,10 @@ export function canPlace(items, col, row, sizeX, sizeY, excludeId = null) {
   return true;
 }
 
-export function findFreeSlot(items, sizeX, sizeY) {
-  for (let row = 0; row <= GRID_ROWS - sizeY; row++) {
-    for (let col = 0; col <= GRID_COLS - sizeX; col++) {
-      if (canPlace(items, col, row, sizeX, sizeY)) {
+export function findFreeSlot(items, cols, rows, sizeX, sizeY) {
+  for (let row = 0; row <= rows - sizeY; row++) {
+    for (let col = 0; col <= cols - sizeX; col++) {
+      if (canPlace(items, cols, rows, col, row, sizeX, sizeY)) {
         return { col, row };
       }
     }
@@ -51,6 +51,20 @@ export function findFreeSlot(items, sizeX, sizeY) {
   return null;
 }
 
-export function totalWeight(items) {
-  return items.reduce((sum, item) => sum + (item.weight || 0), 0);
+export function totalWeight(containers) {
+  let sum = 0;
+
+  for (const container of containers) {
+    for (const item of container.items) {
+      sum += item.weight || 0;
+    }
+  }
+
+  return sum;
+}
+
+export function itemsFitInGrid(items, cols, rows) {
+  return items.every(
+    (item) => item.col + item.sizeX <= cols && item.row + item.sizeY <= rows
+  );
 }

@@ -118,15 +118,16 @@ Automatic rich embeds for every action:
 - Safe-area padding for modern iOS/Android devices
 - Offline-capable (localStorage persistence)
 
-### 🎒 Inventory (Backpack Grid)
-- **8×4 Grid** — 32-slot RPG-style backpack with visual cell layout
-- **Multi-size Items** — Objects of 1×1, 1×4 (vertical), 2×2, 2×1 and more
+### 🎒 Inventory (Modular Containers)
+- **Multi-Container System** — Add multiple bags of different sizes: Pockets (3×2), Pouch (4×3), Backpack (6×4), Large Bag (8×4), Bag of Holding (10×6)
+- **Resize Containers** — Upgrade or downgrade any container via the resize dropdown (items that overflow are removed with confirmation)
+- **Multi-size Items** — Objects of 1×1, 1×4, 2×2, 2×1 and more
 - **Drag & Drop** — Pointer-event based: works on desktop and mobile touch
 - **Collision Detection** — Real-time visual feedback (green/red) while dragging
 - **10 Preset Items** — Potion, Staff, Relic, Sword, Shield, Scroll, Torch, Ring, Helmet, Gem
 - **Custom Items** — Create items with custom name, emoji, size, and weight
-- **Total Weight** — Automatically calculated and displayed
-- **JSON Export / Import** — Save and load your inventory as a standalone JSON file
+- **Total Weight** — Automatically calculated across all containers
+- **JSON Export / Import** — Save and load your full inventory (with V1 migration support)
 - **LocalStorage Persistence** — Inventory saved alongside character data
 
 ---
